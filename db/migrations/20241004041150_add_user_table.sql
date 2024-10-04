@@ -1,9 +1,14 @@
 -- +goose Up
 CREATE TABLE USERS(
-    id VARCHAR(40) PRIMARY KEY,
-    user_name VARCHAR(50),
-    user_email VARCHAR(60),
-    pass_word VARCHAR(100)
+	id             VARCHAR(100),
+	google_id       VARCHAR(100),
+	profile_picture VARCHAR(100),
+	name           VARCHAR(100),
+	pass_word     VARCHAR(100),
+	email         VARCHAR(100),
+	phone         VARCHAR(100),
+	createdAt      VARCHAR(100),
+	updatedAt     VARCHAR(100),
 );
 -- +goose StatementBegin
 SELECT 'up SQL query';
