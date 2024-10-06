@@ -15,6 +15,16 @@ var (
 	ErrStatusValue       = errors.New("status should be 0 or 1")
 
 	ErrFailedGetTokenInformation = errors.New("failed to get token information")
+	ErrUserNotAllowed            = errors.New("user not allowed")
+	ErrUserNotFound              = errors.New("user not found")
+	ErrUnauthorized              = errors.New("unauthorized")
+
+	ErrUserShouldLoginWithGoogle = errors.New("user should login with Google")
+	ErrCodeExchangeWrong         = errors.New("code exchange wrong")
+	ErrFailedGetGoogleUser       = errors.New("failed to get google user")
+	ErrFailedToReadResponse      = errors.New("failed to read response")
+	ErrUnexpectedSigningMethod   = errors.New("unexpected signing method")
+	ErrInvalidToken              = errors.New("invalid token")
 )
 
 type AppError struct {

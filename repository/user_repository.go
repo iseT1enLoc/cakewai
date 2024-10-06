@@ -4,6 +4,7 @@ import (
 	"cakewai/cakewai.com/domain"
 	"context"
 	"database/sql"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -50,19 +51,12 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 		user.Id = int(id)
 		return user, nil
 	}
-
-	res, err := tx.Exec(`INSERT INTO users (email, password) VALUES (?, ?) `, user.Email, user.Password)
+	fmt.Print("line n54 user repository")
+	err = tx.QueryRow(`INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id`, user.Email, user.Password).Scan(&user.Id)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	user.Id = int(id)
+	fmt.Print("line n60 at user repository")
 
 	return user, nil
 }
