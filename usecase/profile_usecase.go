@@ -12,7 +12,7 @@ type profileUseCase struct {
 	contextTimeOut time.Duration
 }
 
-func NewProfileUseCase(time_expiration_time time.Time, user_repository repository.UserRepository) domain.UserUseCase {
+func NewProfileUseCase(time_expiration_time time.Duration, user_repository repository.UserRepository) domain.UserUseCase {
 	return &profileUseCase{
 		userRepository: user_repository,
 		contextTimeOut: 0,
@@ -52,7 +52,7 @@ func (p *profileUseCase) GetListUsers(c context.Context) ([]*domain.UserResponse
 
 // GetUserById implements domain.UserUseCase.
 func (p *profileUseCase) GetUserById(c context.Context, id int) (*domain.UserResponse, error) {
-	ctx, cancel := context.WithTimeout(c, p.contextTimeOut)
+	ctx, cancel := context.WithTimeout(c, time.Hour*5)
 	defer cancel()
 	var ur *domain.UserResponse
 	user, err := p.userRepository.GetUserById(ctx, id)

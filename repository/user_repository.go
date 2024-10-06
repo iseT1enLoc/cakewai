@@ -52,7 +52,7 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 		return user, nil
 	}
 	fmt.Print("line n54 user repository")
-	err = tx.QueryRow(`INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id`, user.Email, user.Password).Scan(&user.Id)
+	err = tx.QueryRow(`INSERT INTO users (email, password,name) VALUES ($1, $2,$3) RETURNING id`, user.Email, user.Password, user.Name).Scan(&user.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -109,16 +109,49 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 // GetUserById implements UserRepository.
 func (u *userRepository) GetUserById(ctx context.Context, id int) (*domain.User, error) {
 	user := domain.User{}
-
-	// Use QueryRowContext to support context
-	err := u.db.QueryRowContext(ctx, `SELECT * FROM users WHERE id = ?`, id).Scan(&user.Id) // Adjust based on your User fields
+	fmt.Print("get user by id repo line 112")
+	fmt.Print("line 113 get user by id repo")
+	// Use sql.NullString for optional fields
+	var profilePicture sql.NullString
+	var googleId sql.NullString
+	var username sql.NullString
+	// Use QueryRowContext to support context and PostgreSQL's placeholder syntax
+	err := u.db.QueryRowContext(ctx, `SELECT id, email, password, google_id, name, profile_picture FROM users WHERE id = $1`, id).Scan(
+		&user.Id,
+		&user.Email,
+		&user.Password,
+		&googleId,
+		&username,
+		&profilePicture,
+	)
+	fmt.Print("get user by id repo line 115")
 	if err != nil {
+		fmt.Print("get user by id repo line 117")
 		if err == sql.ErrNoRows {
 			return nil, nil // Return nil if no user is found
 		}
+		fmt.Print("get user by id repo line 121")
+		print(err)
 		return nil, err // Return other errors
 	}
+	// Handle nullable fields
+	if googleId.Valid {
+		user.GoogleId = googleId.String
+	} else {
+		user.GoogleId = "" // Set to empty string if NULL
+	}
 
+	if profilePicture.Valid {
+		user.ProfilePicture = profilePicture.String
+	} else {
+		user.ProfilePicture = "" // Set to empty string if NULL
+	}
+	if username.Valid {
+		user.Name = profilePicture.String
+	} else {
+		user.Name = "" // Set to empty string if NULL
+	}
+	fmt.Print("get user by id line 124")
 	return &user, nil
 }
 
