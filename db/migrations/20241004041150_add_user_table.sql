@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE USERS (
-    id             SERIAL CONSTRAINT PK_ID PRIMARY KEY,
+    id             VARCHAR(100) CONSTRAINT PK_ID PRIMARY KEY,
     google_id      VARCHAR(100),
     profile_picture VARCHAR(100),
     name           VARCHAR(100),

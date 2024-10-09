@@ -21,7 +21,7 @@ func NewProfileUseCase(time_expiration_time time.Duration, user_repository repos
 }
 
 // DeleteUser implements domain.UserUseCase.
-func (p *profileUseCase) DeleteUser(c context.Context, id int) error {
+func (p *profileUseCase) DeleteUser(c context.Context, id string) error {
 	ctx, cancel := context.WithTimeout(c, p.contextTimeOut)
 	defer cancel()
 	return p.userRepository.DeleteUser(ctx, id)
@@ -51,7 +51,7 @@ func (p *profileUseCase) GetListUsers(c context.Context) ([]*domain.UserResponse
 }
 
 // GetUserById implements domain.UserUseCase.
-func (p *profileUseCase) GetUserById(c context.Context, id int) (*domain.UserResponse, error) {
+func (p *profileUseCase) GetUserById(c context.Context, id string) (*domain.UserResponse, error) {
 	ctx, cancel := context.WithTimeout(c, time.Hour*5)
 	defer cancel()
 	var ur *domain.UserResponse

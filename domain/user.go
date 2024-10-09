@@ -3,10 +3,12 @@ package domain
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	Id             int       `json:"id" db:"id"`
+	Id             uuid.UUID `json:"id" db:"id"`
 	GoogleId       string    `json:"google_id" db:"google_id"`
 	ProfilePicture string    `json:"profile_picture" db:"profile_picture"`
 	Name           string    `json:"name" db:"name"`
@@ -18,7 +20,7 @@ type User struct {
 }
 
 type UserResponse struct {
-	Id             int       `json:"id" db:"id"`
+	Id             uuid.UUID `json:"id" db:"id"`
 	GoogleId       string    `json:"google_id" db:"google_id"`
 	ProfilePicture string    `json:"profile_picture" db:"profile_picture"`
 	Name           string    `json:"name" db:"name"`
@@ -28,8 +30,8 @@ type UserResponse struct {
 }
 
 type UserUseCase interface {
-	GetUserById(c context.Context, id int) (*UserResponse, error)
+	GetUserById(c context.Context, id string) (*UserResponse, error)
 	GetListUsers(c context.Context) ([]*UserResponse, error)
 	UpdateUser(c context.Context, user *User) error
-	DeleteUser(c context.Context, id int) error
+	DeleteUser(c context.Context, id string) error
 }

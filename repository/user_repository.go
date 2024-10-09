@@ -6,16 +6,18 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository interface {
 	GetUsers(ctx context.Context) ([]*domain.User, error)
-	GetUserById(ctx context.Context, id int) (*domain.User, error)
+	GetUserById(ctx context.Context, id string) (*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) (*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
-	DeleteUser(ctx context.Context, userId int) error
+	DeleteUser(ctx context.Context, userId string) error
 }
 
 type userRepository struct {
@@ -37,32 +39,31 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 	defer tx.Commit()
 
 	if user.GoogleId != "" {
-		res, err := tx.Exec(`INSERT INTO users (email, google_id, name, profile_picture) VALUES (?, ?, ?,?)`, user.Email, user.GoogleId, user.Name, user.ProfilePicture)
+		suuid := uuid.NewString()
+		_, err := tx.Exec(`INSERT INTO users (id,email, google_id, name, profile_picture) VALUES (?,?, ?, ?,?)`, suuid, user.Email, user.GoogleId, user.Name, user.ProfilePicture)
 		if err != nil {
 			tx.Rollback()
 			return nil, err
 		}
 
-		id, err := res.LastInsertId()
 		if err != nil {
 			tx.Rollback()
 			return nil, err
 		}
-		user.Id = int(id)
+
 		return user, nil
 	}
-	fmt.Print("line n54 user repository")
-	err = tx.QueryRow(`INSERT INTO users (email, password,name) VALUES ($1, $2,$3) RETURNING id`, user.Email, user.Password, user.Name).Scan(&user.Id)
+	suuid := uuid.NewString()
+	err = tx.QueryRow(`INSERT INTO users (id,email, password,name) VALUES ($1,$2,$3,$4) RETURNING id`, suuid, user.Email, user.Password, user.Name).Scan(&user.Id)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print("line n60 at user repository")
 
 	return user, nil
 }
 
 // DeleteUser implements UserRepository.
-func (u *userRepository) DeleteUser(ctx context.Context, userId int) error {
+func (u *userRepository) DeleteUser(ctx context.Context, userId string) error {
 	tx, err := u.db.Begin()
 	if err != nil {
 		return err
@@ -107,21 +108,21 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 }
 
 // GetUserById implements UserRepository.
-func (u *userRepository) GetUserById(ctx context.Context, id int) (*domain.User, error) {
+func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.User, error) {
 	user := domain.User{}
 	fmt.Print("get user by id repo line 112")
 	fmt.Print("line 113 get user by id repo")
 	// Use sql.NullString for optional fields
 	var profilePicture sql.NullString
 	var googleId sql.NullString
-	var username sql.NullString
+
 	// Use QueryRowContext to support context and PostgreSQL's placeholder syntax
 	err := u.db.QueryRowContext(ctx, `SELECT id, email, password, google_id, name, profile_picture FROM users WHERE id = $1`, id).Scan(
 		&user.Id,
 		&user.Email,
 		&user.Password,
 		&googleId,
-		&username,
+		&user.Name,
 		&profilePicture,
 	)
 	fmt.Print("get user by id repo line 115")
@@ -146,11 +147,7 @@ func (u *userRepository) GetUserById(ctx context.Context, id int) (*domain.User,
 	} else {
 		user.ProfilePicture = "" // Set to empty string if NULL
 	}
-	if username.Valid {
-		user.Name = profilePicture.String
-	} else {
-		user.Name = "" // Set to empty string if NULL
-	}
+
 	fmt.Print("get user by id line 124")
 	return &user, nil
 }

@@ -32,10 +32,10 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 	request.Password = string(encryptedPassword)
 
 	user := &domain.User{
-		Email:     request.Email,
+		Name:      request.Name,
 		Password:  request.Password,
+		Email:     request.Email,
 		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
 	}
 
 	user, err = s.userRepository.CreateUser(ctx, user)
