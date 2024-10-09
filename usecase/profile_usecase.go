@@ -15,7 +15,7 @@ type profileUseCase struct {
 func NewProfileUseCase(time_expiration_time time.Duration, user_repository repository.UserRepository) domain.UserUseCase {
 	return &profileUseCase{
 		userRepository: user_repository,
-		contextTimeOut: 0,
+		contextTimeOut: 3600,
 	}
 
 }

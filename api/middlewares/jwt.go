@@ -19,13 +19,14 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 			authToken := t[1]
 			print(authToken)
 			// Validate the token
-			authorized, err := tokenutil.IsAuthorized(authToken, secret)
+			authorized, err := tokenutil.Is_authorized(authToken, secret)
 			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"Error": "Validate token"})
+				fmt.Printf("Print line 24 at jwt middleware")
+				c.JSON(http.StatusUnauthorized, gin.H{"Error": "Validate token", "errordetail": err})
 				c.Abort()
 				return
 			}
-
+			fmt.Printf("print at line 29 jwtAuthMiddleWare")
 			if authorized {
 				// Extract user ID from token
 				userID, err := tokenutil.ExtractID(authToken, secret)
@@ -41,7 +42,7 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 				c.Next() // Continue to the next handler
 				return
 			}
-
+			fmt.Printf("print at line 44 jwtAuthMiddleWare")
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthrized"})
 			c.Abort()
 			return

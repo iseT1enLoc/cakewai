@@ -12,7 +12,7 @@ import (
 )
 
 func CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
-	exp := time.Now().Add(time.Hour * time.Duration(expiry))
+	exp := time.Now().Add(time.Duration(expiry))
 	claims := &domain.JwtCustomClaims{
 		Name:     user.Name,
 		GoogleId: user.GoogleId,
@@ -27,7 +27,7 @@ func CreateAccessToken(user *domain.User, secret string, expiry int) (accessToke
 	if err != nil {
 		return "", err
 	}
-	return t, err
+	return t, nil
 }
 
 func CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshToken string, err error) {
@@ -45,23 +45,25 @@ func CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshTo
 	if err != nil {
 		return "", err
 	}
-	return rt, err
+	return rt, nil
 }
 
-func IsAuthorized(requestToken string, secret string) (bool, error) {
+func Is_authorized(requestToken string, secretkey string) (bool, error) {
 	_, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, apperror.ErrUnexpectedSigningMethod
+			print(token)
+			return nil, errors.ErrUnsupported
 		}
-		return []byte(secret), nil
+		return []byte(secretkey), nil
 	})
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
-func ExtractIDFromToken(requestToken string, secret string) (int, error) {
+func ExtractIDFromToken(requestToken string, secret string) (string, error) {
 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, apperror.ErrUnexpectedSigningMethod
@@ -69,20 +71,20 @@ func ExtractIDFromToken(requestToken string, secret string) (int, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if !ok && !token.Valid {
-		return 0, apperror.ErrInvalidToken
+		return "", apperror.ErrInvalidToken
 	}
 
-	id := claims["id"].(float64)
+	sid := claims["id"].(string)
 
-	idInt := int(id)
-	return idInt, nil
+	return sid, nil
 }
+
 func ExtractID(requestToken string, secretKey string) (string, error) {
 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
