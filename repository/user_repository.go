@@ -82,28 +82,45 @@ func (u *userRepository) DeleteUser(ctx context.Context, userId string) error {
 // GetUserByEmail implements UserRepository.
 func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	user := domain.User{}
-	stm := `SELECT id, google_id, profile_picture, name, password, phone, created_at, updated_at 
-	        FROM users WHERE email = $1` // Use $1 for positional parameter
+	fmt.Print("get user by id repo line 112")
+	fmt.Print("line 113 get user by id repo")
+	// Use sql.NullString for optional fields
+	var profilePicture sql.NullString
+	var googleId sql.NullString
 
-	// Execute the query and scan the result into the user struct
-	err := u.db.QueryRowContext(ctx, stm, email).Scan(
+	// Use QueryRowContext to support context and PostgreSQL's placeholder syntax
+	err := u.db.QueryRowContext(ctx, `SELECT id, email, password, google_id, name, profile_picture FROM users WHERE email = $1`, email).Scan(
 		&user.Id,
-		&user.GoogleId,
-		&user.ProfilePicture,
-		&user.Name,
-		&user.Password,
 		&user.Email,
-		&user.Phone,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&user.Password,
+		&googleId,
+		&user.Name,
+		&profilePicture,
 	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil // No user found, return nil
-	} else if err != nil {
-		return nil, err // Return the error if any other
+	fmt.Print("get user by id repo line 115")
+	if err != nil {
+		fmt.Print("get user by id repo line 117")
+		if err == sql.ErrNoRows {
+			return nil, nil // Return nil if no user is found
+		}
+		fmt.Print("get user by id repo line 121")
+		print(err)
+		return nil, err // Return other errors
+	}
+	// Handle nullable fields
+	if googleId.Valid {
+		user.GoogleId = googleId.String
+	} else {
+		user.GoogleId = "" // Set to empty string if NULL
 	}
 
+	if profilePicture.Valid {
+		user.ProfilePicture = profilePicture.String
+	} else {
+		user.ProfilePicture = "" // Set to empty string if NULL
+	}
+
+	fmt.Print("get user by id line 124")
 	return &user, nil
 }
 

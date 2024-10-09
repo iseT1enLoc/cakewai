@@ -18,7 +18,7 @@ func NewGoogleRouter(env *appconfig.Env, timeout time.Duration, db *sql.DB, r *g
 		Env:           env,
 	}
 
-	r.GET("google/login", gc.HandleGoogleLogin())
+	r.GET("/google/login", gc.HandleGoogleLogin())
 	r.GET("/google/callback", gc.HandleGoogleCallback())
 
 }
