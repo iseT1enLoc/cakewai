@@ -22,19 +22,26 @@ func LoadEnv() (*Env, error) {
 	if err1 != nil || err2 != nil {
 		// Handle the error if conversion fails
 		fmt.Println("Error converting string to integer:", err1)
-		return nil, err
+		if err1 != nil {
+			return nil, err1
+		} else {
+			return nil, err2
+		}
 	}
 	return &Env{
-		DB_USER:         os.Getenv("DB_USER"),
-		DB_PASSWORD:     os.Getenv("DB_PASSWORD"),
-		DB_HOST:         os.Getenv("DB_HOST"),
-		DB_NAME:         os.Getenv("DB_NAME"),
-		DB_PORT:         os.Getenv("DB_PORT"),
-		SECRET_KEY:      os.Getenv("SECRET_KEY"),
-		ACCESS_SECRET:   os.Getenv("ACCESS_KEY"),
-		REFRESH_SECRET:  os.Getenv("REFRESH_KEY"),
-		TIMEOUT:         os.Getenv("TIMEOUT"),
-		ACCESS_TOK_EXP:  iacc_time,
-		REFRESH_TOK_EXP: ire_time,
+		DB_USER:              os.Getenv("DB_USER"),
+		DB_PASSWORD:          os.Getenv("DB_PASSWORD"),
+		DB_HOST:              os.Getenv("DB_HOST"),
+		DB_NAME:              os.Getenv("DB_NAME"),
+		DB_PORT:              os.Getenv("DB_PORT"),
+		SECRET_KEY:           os.Getenv("SECRET_KEY"),
+		ACCESS_SECRET:        os.Getenv("ACCESS_KEY"),
+		REFRESH_SECRET:       os.Getenv("REFRESH_KEY"),
+		TIMEOUT:              os.Getenv("TIMEOUT"),
+		ACCESS_TOK_EXP:       iacc_time,
+		REFRESH_TOK_EXP:      ire_time,
+		GOOGLE_CLIENT_ID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		GOOGLE_CLIENT_SECRET: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		DATABASE_URL:         os.Getenv("DATABASE_URL"),
 	}, nil
 }

@@ -14,4 +14,5 @@ type Env struct {
 	REFRESH_TOK_EXP      int
 	GOOGLE_CLIENT_ID     string
 	GOOGLE_CLIENT_SECRET string
+	DATABASE_URL         string
 }

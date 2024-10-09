@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq" // <------------ here
@@ -14,14 +15,20 @@ func ConnectToDatabasein20s(appcfg *appconfig.Env) (*sql.DB, error) {
 	timeTry := time.Second * 20
 	//os.Getenv("GOOSE_DBSTRING")
 	//create a connection function
+	dev_env := os.Getenv("APP_ENV")
 	connectingDatabase := func(appcfig *appconfig.Env) (*sql.DB, error) {
-		psqlInfo := fmt.Sprintf("host=%v port=%v user=%v "+
-			"password=%v dbname=%v sslmode=disable",
-			appcfg.DB_HOST, appcfg.DB_PORT, appcfg.DB_USER, appcfg.DB_PASSWORD, appcfg.DB_NAME)
+		var psqlInfo string
+		if dev_env == "dev" {
+			psqlInfo = fmt.Sprintf("host=%v port=%v user=%v "+
+				"password=%v dbname=%v sslmode=disable",
+				appcfg.DB_HOST, appcfg.DB_PORT, appcfg.DB_USER, appcfg.DB_PASSWORD, appcfg.DB_NAME)
+		} else {
+			psqlInfo = os.Getenv("DATABASE_URL")
+		}
 		//psqlInfo := os.Getenv("remotedbString")
 
 		db, err := sql.Open("postgres", psqlInfo)
-
+		fmt.Print(psqlInfo)
 		if err != nil {
 			//panic(err)
 			fmt.Printf("Error happened while connecting to database [error]-%v", err)
