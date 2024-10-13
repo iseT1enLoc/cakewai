@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
@@ -65,7 +66,7 @@ func (uc *UserController) UpdateUser() gin.HandlerFunc {
 		userIDParam := c.Param("user_id") // Assuming user_id is part of the URL parameters
 
 		// Convert user ID from string to int
-		userId, err := uuid.FromBytes([]byte(userIDParam))
+		userId, err := primitive.ObjectIDFromHex(userIDParam)
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})

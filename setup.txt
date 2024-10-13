@@ -2,3 +2,6 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 go get -u github.com/gin-gonic/gin
 export GOPATH=$HOME/CAKEWAI
 export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+usermongodb: locnvt
+matkhau mongodb:7kdXRVISqRXH5brz
+#postgresql://neondb_owner:ul67roEmhTgp@ep-holy-forest-a5co8pxu.us-east-2.aws.neon.tech/neondb?sslmode=require

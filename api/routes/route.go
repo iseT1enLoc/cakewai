@@ -2,13 +2,14 @@ package routes
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
-	"database/sql"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetUp(env *appconfig.Env, timeout time.Duration, db *sql.DB, r *gin.Engine) {
+func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.Engine) {
 	publicRoute := r.Group("/api/public")
 	protectedRoute := r.Group("/api/protected")
 

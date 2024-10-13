@@ -5,9 +5,12 @@ import (
 	"time"
 
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	apperror "cakewai/cakewai.com/component/apperr"
 	"cakewai/cakewai.com/domain"
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 	"cakewai/cakewai.com/repository"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 	"golang.org/x/crypto/bcrypt"
@@ -28,10 +31,19 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		log.Error(err)
 		return
 	}
+	//check if email have already sign up
+	if _, err := s.userRepository.GetUserByEmail(ctx, request.Email); err == nil {
+		accessToken = ""
+		refreshToken = ""
+		var ErrEmailAlreadyRegistered = apperror.ErrEmailAlreadyExist
+		log.Error(ErrEmailAlreadyRegistered)
+		return "", "", ErrEmailAlreadyRegistered
+	}
 
 	request.Password = string(encryptedPassword)
 
 	user := &domain.User{
+		Id:        primitive.NewObjectID(),
 		Name:      request.Name,
 		Password:  request.Password,
 		Email:     request.Email,

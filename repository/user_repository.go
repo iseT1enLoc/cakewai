@@ -3,12 +3,13 @@ package repository
 import (
 	"cakewai/cakewai.com/domain"
 	"context"
-	"database/sql"
 	"fmt"
+	"log"
+	"time"
 
-	"github.com/google/uuid"
-
-	"golang.org/x/crypto/bcrypt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository interface {
@@ -21,232 +22,156 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	db *sql.DB
-}
-
-func NewUserRepository(db *sql.DB) UserRepository {
-	return &userRepository{
-		db: db,
-	}
-}
-
-// CreateUser implements UserRepository.
-func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	tx, err := u.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Commit()
-
-	if user.GoogleId != "" {
-		suuid := uuid.NewString()
-		_, err := tx.Exec(`INSERT INTO users (id,email, google_id, name, profile_picture) VALUES (?,?, ?, ?,?)`, suuid, user.Email, user.GoogleId, user.Name, user.ProfilePicture)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-
-		return user, nil
-	}
-	suuid := uuid.NewString()
-	err = tx.QueryRow(`INSERT INTO users (id,email, password,name) VALUES ($1,$2,$3,$4) RETURNING id`, suuid, user.Email, user.Password, user.Name).Scan(&user.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	db              *mongo.Database
+	collection_name string
 }
 
 // DeleteUser implements UserRepository.
 func (u *userRepository) DeleteUser(ctx context.Context, userId string) error {
-	tx, err := u.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Commit()
+	panic("unimplemented")
+}
 
-	_, err = tx.Exec("DELETE FROM users WHERE id = ?", userId)
-	if err != nil {
-		tx.Rollback()
-		return err
+func NewUserRepository(db *mongo.Database, collection string) UserRepository {
+	return &userRepository{
+		db:              db,
+		collection_name: collection,
+	}
+}
+
+// // CreateUser implements UserRepository.
+// func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
+// 	tx, err := u.db.Begin()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer tx.Commit()
+
+// 	if user.GoogleId != "" {
+// 		suuid := uuid.NewString()
+// 		_, err := tx.Exec(`INSERT INTO users (id,email, google_id, name, profile_picture) VALUES (?,?, ?, ?,?)`, suuid, user.Email, user.GoogleId, user.Name, user.ProfilePicture)
+// 		if err != nil {
+// 			tx.Rollback()
+// 			return nil, err
+// 		}
+
+// 		if err != nil {
+// 			tx.Rollback()
+// 			return nil, err
+// 		}
+
+// 		return user, nil
+// 	}
+// 	suuid := uuid.NewString()
+// 	err = tx.QueryRow(`INSERT INTO users (id,email, password,name) VALUES ($1,$2,$3,$4) RETURNING id`, suuid, user.Email, user.Password, user.Name).Scan(&user.Id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+//		return user, nil
+//	}
+func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	collection := u.db.Collection(u.collection_name)
+
+	defer cancel()
+	if user.GoogleId != "" {
+		_, err := collection.InsertOne(ctx, bson.M{
+			"_id":             user.Id,
+			"email":           user.Email,
+			"google_id":       user.GoogleId,
+			"name":            user.Name,
+			"profile_picture": user.ProfilePicture,
+			"createdAt":       time.Now(),
+		})
+
+		if err != nil {
+			log.Print(err)
+			return nil, err
+		}
+		return user, nil
 	}
 
-	return nil
+	_, err := collection.InsertOne(ctx, bson.M{
+		"_id":             user.Id,
+		"email":           user.Email,
+		"google_id":       user.GoogleId,
+		"name":            user.Name,
+		"profile_picture": user.ProfilePicture,
+		"createdAt":       time.Now(),
+	})
+
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	return user, nil
 }
 
 // GetUserByEmail implements UserRepository.
 func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	user := domain.User{}
-	fmt.Print("get user by id repo line 112")
-	fmt.Print("line 113 get user by id repo")
-	// Use sql.NullString for optional fields
-	var profilePicture sql.NullString
-	var googleId sql.NullString
-
-	// Use QueryRowContext to support context and PostgreSQL's placeholder syntax
-	err := u.db.QueryRowContext(ctx, `SELECT id, email, password, google_id, name, profile_picture FROM users WHERE email = $1`, email).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Password,
-		&googleId,
-		&user.Name,
-		&profilePicture,
-	)
-	fmt.Print("get user by id repo line 115")
+	collection := u.db.Collection(u.collection_name)
+	var user domain.User
+	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	fmt.Printf("Error line 115 at user repository %v", err)
 	if err != nil {
-		fmt.Print("get user by id repo line 117")
-		if err == sql.ErrNoRows {
-			return nil, nil // Return nil if no user is found
-		}
-		fmt.Print("get user by id repo line 121")
-		print(err)
-		return nil, err // Return other errors
+		return nil, err
 	}
-	// Handle nullable fields
-	if googleId.Valid {
-		user.GoogleId = googleId.String
-	} else {
-		user.GoogleId = "" // Set to empty string if NULL
-	}
-
-	if profilePicture.Valid {
-		user.ProfilePicture = profilePicture.String
-	} else {
-		user.ProfilePicture = "" // Set to empty string if NULL
-	}
-
-	fmt.Print("get user by id line 124")
 	return &user, nil
 }
 
 // GetUserById implements UserRepository.
 func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.User, error) {
-	user := domain.User{}
-	fmt.Print("get user by id repo line 112")
-	fmt.Print("line 113 get user by id repo")
-	// Use sql.NullString for optional fields
-	var profilePicture sql.NullString
-	var googleId sql.NullString
+	collection := u.db.Collection(u.collection_name)
 
-	// Use QueryRowContext to support context and PostgreSQL's placeholder syntax
-	err := u.db.QueryRowContext(ctx, `SELECT id, email, password, google_id, name, profile_picture FROM users WHERE id = $1`, id).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Password,
-		&googleId,
-		&user.Name,
-		&profilePicture,
-	)
-	fmt.Print("get user by id repo line 115")
-	if err != nil {
-		fmt.Print("get user by id repo line 117")
-		if err == sql.ErrNoRows {
-			return nil, nil // Return nil if no user is found
-		}
-		fmt.Print("get user by id repo line 121")
-		print(err)
-		return nil, err // Return other errors
-	}
-	// Handle nullable fields
-	if googleId.Valid {
-		user.GoogleId = googleId.String
-	} else {
-		user.GoogleId = "" // Set to empty string if NULL
-	}
+	var fuser domain.User
 
-	if profilePicture.Valid {
-		user.ProfilePicture = profilePicture.String
-	} else {
-		user.ProfilePicture = "" // Set to empty string if NULL
-	}
-
-	fmt.Print("get user by id line 124")
-	return &user, nil
+	err := collection.FindOne(ctx, bson.M{"_id": id}).Decode(&fuser)
+	return &fuser, err
 }
 
 // GetUsers implements UserRepository.
 func (u *userRepository) GetUsers(ctx context.Context) ([]*domain.User, error) {
-	var users []*domain.User
-	stm := `SELECT id, google_id, profile_picture, name, email, phone, created_at, updated_at FROM users`
+	collection := u.db.Collection(u.collection_name)
 
-	// Use QueryContext for context support
-	records, err := u.db.Query(stm)
+	opts := options.Find().SetProjection(bson.D{{Key: "password", Value: 0}})
+	cursor, err := collection.Find(ctx, bson.D{}, opts)
+
 	if err != nil {
-		return nil, err // Return the error if the query fails
-	}
-	defer records.Close() // Ensure the rows are closed
-
-	for records.Next() {
-		var user domain.User
-
-		// Scan the values into the user struct
-		if err := records.Scan(
-			&user.Id,
-			&user.GoogleId,
-			&user.ProfilePicture,
-			&user.Name,
-			&user.Email,
-			&user.Phone,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		); err != nil {
-			return nil, err // Return the error if scanning fails
-		}
-
-		// Append the user to the slice
-		users = append(users, &user)
+		return nil, err
 	}
 
-	// Check for errors from iterating over rows.
-	if err := records.Err(); err != nil {
-		return nil, err // Return the error if there was an error during iteration
+	var users []*domain.User
+
+	err = cursor.All(ctx, &users)
+	if users == nil {
+		return []*domain.User{}, err
 	}
 
-	return users, nil // Return the slice of users
+	return users, err
 }
 
 // UpdateUser implements UserRepository.
 func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) error {
-	tx, err := u.db.Begin()
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	collection := u.db.Collection(u.collection_name)
+
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": user.Id},
+		bson.M{"$set": bson.M{"google_id": user.GoogleId,
+			"profile_picture": user.ProfilePicture,
+			"name":            user.Name,
+			"password":        user.Password,
+			"email":           user.Email,
+			"phone":           user.Phone,
+			"address":         user.Address,
+			"created_at":      user.CreatedAt,
+			"updated_at":      user.UpdatedAt,
+			"invoices":        user.Invoices,
+			"cart_item":       user.UserCart,
+		}})
+
 	if err != nil {
-		return err
-	}
-	defer tx.Commit()
-
-	if user.Password != "" {
-		encryptedPassword, err := bcrypt.GenerateFromPassword(
-			[]byte(user.Password),
-			bcrypt.DefaultCost,
-		)
-		if err != nil {
-			return err
-		}
-		user.Password = string(encryptedPassword)
-	}
-
-	fieldsQuery := ""
-	if user.Email != "" {
-		fieldsQuery += "email = :email,"
-	}
-	if user.Name != "" {
-		fieldsQuery += "name = :name,"
-	}
-	if user.Password != "" {
-		fieldsQuery += "password = :password,"
-	}
-	if user.Phone != "" {
-		fieldsQuery += "phone = :phone,"
-	}
-	fieldsQuery = fieldsQuery[:len(fieldsQuery)-1]
-
-	_, err = tx.Exec("UPDATE users SET "+fieldsQuery+" WHERE id = ?", user.Id)
-	if err != nil {
-		tx.Rollback()
+		log.Print(err)
 		return err
 	}
 

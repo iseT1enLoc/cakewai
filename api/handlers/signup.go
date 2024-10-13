@@ -32,7 +32,8 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 		accessToken, refreshToken, err := sc.SignupUseCase.SignUp(c.Request.Context(), request, sc.Env)
 		if err != nil {
 			log.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println("Error happened in line 35 sign up handler")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Email is already existed"})
 			return
 		}
 

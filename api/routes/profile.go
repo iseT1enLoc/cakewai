@@ -5,15 +5,16 @@ import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	"cakewai/cakewai.com/repository"
 	"cakewai/cakewai.com/usecase"
-	"database/sql"
 	"net/http"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewUserRouter(env *appconfig.Env, timeout time.Duration, db *sql.DB, r *gin.RouterGroup) {
-	ur := repository.NewUserRepository(db)
+func NewUserRouter(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.RouterGroup) {
+	ur := repository.NewUserRepository(db, "users")
 	// uc := &controller.UserController{
 	// 	UserUseCase: usecase.NewUserUseCase(ur, timeout),
 	// 	Env:         env,

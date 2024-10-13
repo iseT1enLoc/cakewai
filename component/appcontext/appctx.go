@@ -1,24 +1,24 @@
 package appctx
 
-import "database/sql"
+import "go.mongodb.org/mongo-driver/mongo"
 
 type Appcontext interface {
-	GetConnectionToDatabase() *sql.DB
+	GetConnectionToDatabase() *mongo.Database
 	GetSecretKeyString() string
 }
 
 type appcontext struct {
-	db        *sql.DB
+	db        *mongo.Database
 	secretkey string
 }
 
-func NewAppContext(db *sql.DB, secreykey string) *appcontext {
+func NewAppContext(db *mongo.Database, secreykey string) *appcontext {
 	return &appcontext{
 		db:        db,
 		secretkey: secreykey,
 	}
 }
-func (appctx *appcontext) GetConnectionToDatabase() *sql.DB {
+func (appctx *appcontext) GetConnectionToDatabase() *mongo.Database {
 	return appctx.db
 }
 

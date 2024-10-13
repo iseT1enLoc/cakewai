@@ -4,29 +4,33 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type User struct {
-	Id             uuid.UUID `json:"id" db:"id"`
-	GoogleId       string    `json:"google_id" db:"google_id"`
-	ProfilePicture string    `json:"profile_picture" db:"profile_picture"`
-	Name           string    `json:"name" db:"name"`
-	Password       string    `json:"password" db:"password"`
-	Email          string    `json:"email" db:"email"`
-	Phone          string    `json:"phone" db:"phone"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
+	Id             primitive.ObjectID `json:"id" bson:"id"`
+	GoogleId       string             `json:"google_id" bson:"google_id"`
+	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	Name           string             `json:"name" bson:"name"`
+	Password       string             `json:"password" bsno:"password"`
+	Email          string             `json:"email" bson:"email"`
+	Phone          string             `json:"phone" bson:"phone"`
+	Address        Address            `json:"address" bson:"address"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at" bson:"updated_at"`
+	Invoices       []Invoice          `json:"invoices" bson:"invoices"`
+	UserCart       []CartItem         `json:"cart_item" bson:"cart_item"`
+	UserType       string             `json:"user_type" bson:"user_type"`
 }
 
 type UserResponse struct {
-	Id             uuid.UUID `json:"id" db:"id"`
-	GoogleId       string    `json:"google_id" db:"google_id"`
-	ProfilePicture string    `json:"profile_picture" db:"profile_picture"`
-	Name           string    `json:"name" db:"name"`
-	Email          string    `json:"email" db:"email"`
-	Phone          string    `json:"phone" db:"phone"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
+	Id             primitive.ObjectID `json:"id" bson:"id"`
+	GoogleId       string             `json:"google_id" bson:"google_id"`
+	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	Name           string             `json:"name" bson:"name"`
+	Email          string             `json:"email" bson:"email"`
+	Phone          string             `json:"phone" bson:"phone"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 }
 
 type UserUseCase interface {
