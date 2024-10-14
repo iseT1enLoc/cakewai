@@ -10,8 +10,8 @@ import (
 )
 
 func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.Engine) {
-	publicRoute := r.Group("/api/public")
-	protectedRoute := r.Group("/api/protected")
+	publicRoute := r.Group("/api/public")       //ai vo cung duoc
+	protectedRoute := r.Group("/api/protected") // co account moi vo duoc
 
 	//protectedRoute.Use(middlewares.JwtAuthMiddleware(os.Getenv("ACCESS_SECRET")))
 	NewGoogleRouter(env, timeout, db, publicRoute)

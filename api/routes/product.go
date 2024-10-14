@@ -22,5 +22,8 @@ func NewProductRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Databas
 	r.GET("/product/:product_id", prod_handler.GetProductById())
 	r.GET("/products/", prod_handler.GetAllProducts())
 	r.PUT("/product/:product_id", prod_handler.UpdateProductById())
+	r.POST("/variant/:product_id", prod_handler.AddProductVariant())
+	r.PUT("/variant/:product_id", prod_handler.UpdateProductVarientByName())
 	r.DELETE("/product/:product_id", prod_handler.DeleteProductById())
+	r.DELETE("/variant/:product_id", prod_handler.DeleteProductVariant())
 }

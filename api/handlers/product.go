@@ -112,3 +112,88 @@ func (pc *ProductHandler) GetAllProducts() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, gin.H{"message": "get all products successfully", "data": productlist})
 	}
 }
+func (pc *ProductHandler) AddProductVariant() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		prodIDparam := ctx.Param("product_id")
+		product_id, err := primitive.ObjectIDFromHex(prodIDparam)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid request id"})
+			return
+		}
+		var prod_variant domain.ProductVariant
+		if err := ctx.ShouldBindJSON(&prod_variant); err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not parse json product variant"})
+			return
+		}
+		_, err = pc.ProductUsecase.AddProductVariant(ctx, product_id, prod_variant)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "err while adding product variant"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "successfully adding product variant"})
+	}
+}
+func (pc *ProductHandler) DeleteProductVariant() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		prodParam := ctx.Param("product_id")
+		id, err := primitive.ObjectIDFromHex(prodParam)
+		var variant struct {
+			VariantName string `json:"variant_name"`
+		}
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid product id"})
+			return
+		}
+		if err := ctx.ShouldBindJSON(&variant); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not bind json at delete product variant"})
+			return
+		}
+		_, err = pc.ProductUsecase.DeleteProductVariant(ctx, id, variant.VariantName)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while deleting project variant"})
+			return
+		}
+		prod, err := pc.ProductUsecase.GetProductById(ctx, id)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while get product by id"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"messagge": "successfully delete product variant from product", "product": prod})
+	}
+}
+func (pc *ProductHandler) UpdateProductVarientByName() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		prodParam := ctx.Param("product_id")
+		prodID, err := primitive.ObjectIDFromHex(prodParam)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid product id can not convert"})
+			return
+		}
+		var updatedVariant domain.ProductVariant
+		if err := ctx.ShouldBindJSON(&updatedVariant); err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not bind json at product variant"})
+		}
+		_, err = pc.ProductUsecase.UpdateProductVariant(ctx, prodID, updatedVariant)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "internal error while update product variant"})
+			return
+		}
+		prod, err := pc.ProductUsecase.GetProductById(ctx, prodID)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while get product by id"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "successfully updates field", "product": prod})
+
+	}
+}

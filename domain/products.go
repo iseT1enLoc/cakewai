@@ -43,11 +43,11 @@ type ProductUsecase interface {
 	DeleteProductById(ctx context.Context, id primitive.ObjectID) error
 
 	// Add a variant to a product
-	AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant ProductVariant) (*Product, error)
+	AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant ProductVariant) (int64, error)
 
 	// Update a product variant
-	UpdateProductVariant(ctx context.Context, productId primitive.ObjectID, variantId primitive.ObjectID, updatedVariant ProductVariant) (*Product, error)
+	UpdateProductVariant(ctx context.Context, productId primitive.ObjectID, updatedVariant ProductVariant) (int64, error)
 
 	// Delete a product variant
-	DeleteProductVariant(ctx context.Context, productId primitive.ObjectID, variantId primitive.ObjectID) (*Product, error)
+	DeleteProductVariant(ctx context.Context, productId primitive.ObjectID, variant_name string) (int64, error)
 }
