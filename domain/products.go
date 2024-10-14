@@ -7,21 +7,28 @@ import (
 )
 
 type Product struct {
-	ProductId   primitive.ObjectID `json:"product_id" bson:"product_name"`
+	ProductId   primitive.ObjectID `json:"_id" bson:"_id"`
+	ProductName string             `json:"product_name" bson:"product_name"`
 	Description string             `json:"description" bson:"description"`
 	ImageLink   string             `json:"image_link" bson:"image_link"`
 	Variant     []ProductVariant   `json:"product_variant" bson:"product_variant"`
 }
+
+type ProductRequest struct {
+	Description string           `json:"description" bson:"description"`
+	ProductName string           `json:"product_name" bson:"product_name"`
+	ImageLink   string           `json:"image_link" bson:"image_link"`
+	Variant     []ProductVariant `json:"product_variant" bson:"product_variant"`
+}
 type ProductVariant struct {
-	ProductVariantId primitive.ObjectID `json:"provariant_id" bson:"product_variant_id"`
-	VarientFeatures  string             `json:"variant_features" bson:"variant_features"`
-	Price            string             `json:"price" bson:"price"`
-	Discount         string             `json:"discount" bson:"discount"`
+	VarientFeatures string `json:"variant_features" bson:"variant_features"`
+	Price           string `json:"price" bson:"price"`
+	Discount        string `json:"discount" bson:"discount"`
 }
 
-type ProductRepository interface {
+type ProductUsecase interface {
 	// Create a new product
-	CreateProduct(ctx context.Context, product *Product) (*Product, error)
+	CreateProduct(ctx context.Context, product *ProductRequest) (*Product, error)
 
 	// Get product by ID
 	GetProductById(ctx context.Context, id primitive.ObjectID) (*Product, error)
@@ -30,7 +37,7 @@ type ProductRepository interface {
 	GetAllProducts(ctx context.Context) ([]*Product, error)
 
 	// Update product by ID
-	UpdateProductById(ctx context.Context, id primitive.ObjectID, updatedProduct *Product) (*Product, error)
+	UpdateProductById(ctx context.Context, id primitive.ObjectID, updatedProduct *ProductRequest) (int64, error)
 
 	// Delete product by ID
 	DeleteProductById(ctx context.Context, id primitive.ObjectID) error

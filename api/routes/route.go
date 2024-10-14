@@ -19,6 +19,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewLoginRoute(env, timeout, db, publicRoute)
 	NewUserRouter(env, timeout, db, protectedRoute)
 	NewRefreshTokenRoute(env, timeout, db, publicRoute)
+	NewProductRoute(env, timeout, db, publicRoute)
 	//NewSignInRoute(env, timeout, db, publicRoute)
 	//protectedRoute.Use(middleware.JwtAuthMiddleware(os.Getenv("SECRET_KEY")))
 	//NewResourceRoute(env, timeout, db, protectedRoute)
