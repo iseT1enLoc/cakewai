@@ -16,22 +16,22 @@ import (
 )
 
 type ProductRepository interface {
-	// Create a new product: DONE-------|DONE handler
+	// Create a new product: DONE-------
 	CreateProduct(ctx context.Context, product *domain.ProductRequest) (*domain.Product, error)
 
-	// Get product by ID:DONE------------|DONE handler
+	// Get product by ID:DONE------------
 	GetProductById(ctx context.Context, id primitive.ObjectID) (*domain.Product, error)
 
-	// Get all products: DONE------------|DONE handler
+	// Get all products: DONE------------
 	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
 
-	// Update product by ID:DONE----------|DONE handler
+	// Update product by ID:DONE----------
 	UpdateProductById(ctx context.Context, id primitive.ObjectID, updatedProduct *domain.ProductRequest) (int64, error)
 
-	// Delete product by ID: DONE-------|DONE handler
+	// Delete product by ID: DONE-------
 	DeleteProductById(ctx context.Context, id primitive.ObjectID) (rowAffect int64, err error)
 
-	// Add a variant to a product:DONE----------|DONE handler
+	// Add a variant to a product:DONE----------
 	AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant domain.ProductVariant) (int64, error)
 
 	// Update a product variant
