@@ -8,7 +8,7 @@ import (
 
 	appconfig "cakewai/cakewai.com/component/appcfg"
 
-	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,25 +19,28 @@ func ConnectWithMongodb(appcfg *appconfig.Env) (*mongo.Client, error) {
 		mongo_db_url := appcfg.DATABASE_URL
 
 		// load .env file
-		if err := godotenv.Load(); err != nil {
-			log.Fatal(err)
-		}
+		// if err := godotenv.Load(); err != nil {
+		// 	log.Fatal(err)
+		// }
 		// set mongodb connection string
 		if mongo_db_url == "" {
 			log.Fatal("MONGODB_URI is not set")
 		}
-		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongo_db_url))
+		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongo_db_url).SetServerAPIOptions(serverAPI))
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-
-		// check the connection
-		err = client.Ping(context.TODO(), nil)
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			log.Println("Connected to mongodb")
+		// defer func() {
+		// 	if err = client.Disconnect(context.TODO()); err != nil {
+		// 		panic(err)
+		// 	}
+		// }()
+		// Send a ping to confirm a successful connection
+		if err := client.Database("locnvt").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
+			panic(err)
 		}
+		fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
 		return client, nil
 	}

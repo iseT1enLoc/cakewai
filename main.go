@@ -33,10 +33,10 @@ func main() {
 	r.Use(middlewares.CORS())
 	r.Use(middlewares.Recover(appctx))
 
-	routes.SetUp(appcfg, time.Duration(appcfg.REFRESH_TOK_EXP), db, r)
+	routes.SetUp(appcfg, time.Second*5, db, r)
 	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"data": "hello everyone, welcome to my chanel"})
 	})
-	r.Run("localhost:8080")
-	//r.Run()
+	//r.Run("localhost:8080")
+	r.Run()
 }

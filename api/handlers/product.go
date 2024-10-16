@@ -2,6 +2,7 @@ package handlers
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
@@ -24,16 +25,34 @@ func (pc *ProductHandler) CreateProductHandler() gin.HandlerFunc {
 
 		if err := ctx.ShouldBindJSON(&product); err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Error happened while parsing product"})
+
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while parsing product json",
+				Error:   err.Error(),
+			})
 			return
 		}
 
 		prod, err := pc.ProductUsecase.CreateProduct(ctx, &product)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error while creating product"})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while inserting to database",
+				Error:   err.Error(),
+			})
+			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"data": prod})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully create product",
+				},
+				Data: prod,
+			},
+		})
 	}
 }
 
@@ -44,17 +63,33 @@ func (pc *ProductHandler) GetProductById() gin.HandlerFunc {
 
 		if err != nil {
 			log.Error(errors.Errorf("Invalid product id %s , error %s", prodID, err))
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid product ID format"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    200,
+				Message: "Invalid product id",
+				Error:   err.Error(),
+			})
 			return
 		}
 
 		prod, err := pc.ProductUsecase.GetProductById(ctx, prodID)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Error happened while trying to get product by id from repositpository"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while querying database..",
+				Error:   err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"data": prod})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "",
+				},
+				Data: prod,
+			},
+		})
 	}
 }
 
@@ -64,23 +99,43 @@ func (pc *ProductHandler) UpdateProductById() gin.HandlerFunc {
 		prodID, err := primitive.ObjectIDFromHex(prodIDParam)
 		if err != nil {
 			log.Error(errors.Errorf("Invalid product id %s , error %s", prodID, err))
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid product ID format"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid product id",
+				Error:   err.Error(),
+			})
 			return
 		}
 		var updatedProd *domain.ProductRequest
 		if err := ctx.ShouldBindJSON(&updatedProd); err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Could not bind body with json..."})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while parsing json..",
+				Error:   err.Error(),
+			})
 			return
 		}
 
 		rowAffected, err := pc.ProductUsecase.UpdateProductById(ctx.Request.Context(), prodID, updatedProd)
 		if err != nil {
 			fmt.Errorf("Error while update product by id")
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": err})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while update product by id",
+				Error:   err.Error(),
+			})
 		}
 
-		ctx.JSON(http.StatusOK, rowAffected)
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully update product by id",
+				},
+				Data: rowAffected,
+			},
+		})
 	}
 }
 func (pc *ProductHandler) DeleteProductById() gin.HandlerFunc {
@@ -89,16 +144,32 @@ func (pc *ProductHandler) DeleteProductById() gin.HandlerFunc {
 		prodID, err := primitive.ObjectIDFromHex(prodParam)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid Product id"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid product id",
+				Error:   err.Error(),
+			})
 			return
 		}
 		err = pc.ProductUsecase.DeleteProductById(ctx, prodID)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error while deleting product"})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while deleting product...",
+				Error:   err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "successfully delete product"})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully deleting product",
+				},
+				Data: nil,
+			},
+		})
 	}
 }
 func (pc *ProductHandler) GetAllProducts() gin.HandlerFunc {
@@ -106,10 +177,22 @@ func (pc *ProductHandler) GetAllProducts() gin.HandlerFunc {
 		productlist, err := pc.ProductUsecase.GetAllProducts(ctx)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while get all product from database"})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error while querying database..",
+				Error:   err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "get all products successfully", "data": productlist})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully getting product list",
+				},
+				Data: productlist,
+			},
+		})
 	}
 }
 func (pc *ProductHandler) AddProductVariant() gin.HandlerFunc {
@@ -118,22 +201,42 @@ func (pc *ProductHandler) AddProductVariant() gin.HandlerFunc {
 		product_id, err := primitive.ObjectIDFromHex(prodIDparam)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid request id"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid product id..",
+				Error:   err.Error(),
+			})
 			return
 		}
 		var prod_variant domain.ProductVariant
 		if err := ctx.ShouldBindJSON(&prod_variant); err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not parse json product variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Can not parsing product id",
+				Error:   err.Error(),
+			})
 			return
 		}
 		_, err = pc.ProductUsecase.AddProductVariant(ctx, product_id, prod_variant)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "err while adding product variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while adding product variant into db",
+				Error:   err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "successfully adding product variant"})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully getting adding product variant...",
+				},
+				Data: nil,
+			},
+		})
 	}
 }
 func (pc *ProductHandler) DeleteProductVariant() gin.HandlerFunc {
@@ -145,26 +248,50 @@ func (pc *ProductHandler) DeleteProductVariant() gin.HandlerFunc {
 		}
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid product id"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid product variant id...",
+				Error:   err.Error(),
+			})
 			return
 		}
 		if err := ctx.ShouldBindJSON(&variant); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not bind json at delete product variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while parsing product variant name...",
+				Error:   err.Error(),
+			})
 			return
 		}
 		_, err = pc.ProductUsecase.DeleteProductVariant(ctx, id, variant.VariantName)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while deleting project variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while deleting product variant of this product id...",
+				Error:   err.Error(),
+			})
 			return
 		}
 		prod, err := pc.ProductUsecase.GetProductById(ctx, id)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while get product by id"})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error happened while getting the product by id..",
+				Error:   "",
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"messagge": "successfully delete product variant from product", "product": prod})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully deleting product variant by name and here is the current product status...",
+				},
+				Data: prod,
+			},
+		})
 	}
 }
 func (pc *ProductHandler) UpdateProductVarientByName() gin.HandlerFunc {
@@ -173,27 +300,51 @@ func (pc *ProductHandler) UpdateProductVarientByName() gin.HandlerFunc {
 		prodID, err := primitive.ObjectIDFromHex(prodParam)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "invalid product id can not convert"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while converting product id from hex to string...",
+				Error:   err.Error(),
+			})
 			return
 		}
 		var updatedVariant domain.ProductVariant
 		if err := ctx.ShouldBindJSON(&updatedVariant); err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "can not bind json at product variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while parsing product variant",
+				Error:   err.Error(),
+			})
 		}
 		_, err = pc.ProductUsecase.UpdateProductVariant(ctx, prodID, updatedVariant)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "internal error while update product variant"})
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while updating product variant...",
+				Error:   err.Error(),
+			})
 			return
 		}
 		prod, err := pc.ProductUsecase.GetProductById(ctx, prodID)
 		if err != nil {
 			log.Error(err)
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "error while get product by id"})
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+				Error:   err.Error(),
+			})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "successfully updates field", "product": prod})
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Successfully update product...",
+				},
+				Data: prod,
+			},
+		})
 
 	}
 }
