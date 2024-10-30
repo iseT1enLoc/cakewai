@@ -40,6 +40,7 @@ func (uc *UserController) GetUserById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user ID from the URL parameters (assuming it's part of the path)
 		sdParam := c.Param("user_id")
+		print(sdParam)
 		fmt.Print("get user by id handler line 42")
 		// Convert the user ID from string to int
 		// intId, err := uuid.FromBytes([]byte(idParam))

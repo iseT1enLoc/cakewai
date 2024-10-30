@@ -29,7 +29,7 @@ func (p *profileUseCase) DeleteUser(c context.Context, id string) error {
 
 // GetListUsers implements domain.UserUseCase.
 func (p *profileUseCase) GetListUsers(c context.Context) ([]*domain.UserResponse, error) {
-	ctx, cancel := context.WithTimeout(c, p.contextTimeOut)
+	ctx, cancel := context.WithTimeout(c, time.Second*10)
 	defer cancel()
 	var urs []*domain.UserResponse
 	users, err := p.userRepository.GetUsers(ctx)

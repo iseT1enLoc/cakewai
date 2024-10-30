@@ -8,11 +8,11 @@ import (
 )
 
 type User struct {
-	Id             primitive.ObjectID `json:"id" bson:"id"`
+	Id             primitive.ObjectID `json:"id" bson:"_id"`
 	GoogleId       string             `json:"google_id" bson:"google_id"`
 	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
 	Name           string             `json:"name" bson:"name"`
-	Password       string             `json:"password" bsno:"password"`
+	Password       string             `json:"password" bson:"password"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
 	Address        Address            `json:"address" bson:"address"`
@@ -24,13 +24,13 @@ type User struct {
 }
 
 type UserResponse struct {
-	Id             primitive.ObjectID `json:"id" bson:"id"`
+	Id             primitive.ObjectID `json:"id" bson:"_id"`
 	GoogleId       string             `json:"google_id" bson:"google_id"`
 	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
 	Name           string             `json:"name" bson:"name"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
-	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
+	CreatedAt      time.Time          `json:"created_at" bson:"createdAt"`
 }
 
 type UserUseCase interface {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -28,7 +29,17 @@ type userRepository struct {
 
 // DeleteUser implements UserRepository.
 func (u *userRepository) DeleteUser(ctx context.Context, userId string) error {
-	panic("unimplemented")
+	contx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer cancel()
+
+	userObjectID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		log.Fatalf("Can not parsing the hex to object id")
+		return err
+	}
+
+	_, err = u.db.Collection(u.collection_name).DeleteOne(contx, bson.M{"_id": userObjectID})
+	return err
 }
 
 func NewUserRepository(db *mongo.Database, collection string) UserRepository {
@@ -81,6 +92,7 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 			"google_id":       user.GoogleId,
 			"name":            user.Name,
 			"profile_picture": user.ProfilePicture,
+			"password":        user.Password,
 			"createdAt":       time.Now(),
 		})
 
@@ -96,6 +108,7 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 		"email":           user.Email,
 		"google_id":       user.GoogleId,
 		"name":            user.Name,
+		"password":        user.Password,
 		"profile_picture": user.ProfilePicture,
 		"createdAt":       time.Now(),
 	})
@@ -124,8 +137,14 @@ func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.Us
 	collection := u.db.Collection(u.collection_name)
 
 	var fuser domain.User
+	print("Enter repository get user by id")
+	ObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Fatal("Error converting id string to object id")
 
-	err := collection.FindOne(ctx, bson.M{"_id": id}).Decode(&fuser)
+	}
+	err = collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&fuser)
+	print(fuser.Name)
 	return &fuser, err
 }
 

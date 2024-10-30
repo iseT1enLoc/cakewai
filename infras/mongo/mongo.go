@@ -26,8 +26,9 @@ func ConnectWithMongodb(appcfg *appconfig.Env) (*mongo.Client, error) {
 		if mongo_db_url == "" {
 			log.Fatal("MONGODB_URI is not set")
 		}
-		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongo_db_url).SetServerAPIOptions(serverAPI))
+		//serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+		//client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongo_db_url).SetServerAPIOptions(serverAPI))
+		client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongo_db_url))
 		if err != nil {
 			panic(err)
 		}

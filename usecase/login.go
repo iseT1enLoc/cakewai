@@ -36,14 +36,17 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 	}
 	fmt.Print("line 36 login usecase")
 
-	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)) != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
+		fmt.Printf("Password retrieve from database %s\n", user.Password)
+		fmt.Println(request.Password)
 		log.Error(err)
 		err = apperror.ErrInvalidPassword
 		return
 	}
 	fmt.Print("line 43 login usecase")
-
-	accessToken, err = tokenutil.CreateAccessToken(user, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	arg := "hihi"
+	accessToken, err = tokenutil.CreateAccessToken(user, arg, time.Now().Second()*3600)
+	fmt.Printf("\n Create Access token %s\n", arg)
 	if err != nil {
 		log.Error(err)
 		return

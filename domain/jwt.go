@@ -6,7 +6,7 @@ import (
 
 type JwtCustomClaims struct {
 	Name     string `json:"name"`
-	ID       string `json:"id"`
+	ID       string `json:"_id"`
 	Email    string `json:"email"`
 	GoogleId string `json:"google_id"`
 	jwt.RegisteredClaims
@@ -14,7 +14,7 @@ type JwtCustomClaims struct {
 
 type JwtCustomRefreshClaims struct {
 	Name     string `json:"name"`
-	ID       string `json:"id"`
+	ID       string `json:"_id"`
 	Email    string `json:"email"`
 	GoogleId string `json:"google_id"`
 	jwt.RegisteredClaims

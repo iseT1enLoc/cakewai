@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"cakewai/cakewai.com/api/middlewares"
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	"time"
 
@@ -17,10 +18,12 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewGoogleRouter(env, timeout, db, publicRoute)
 	NewSignUpRoute(env, timeout, db, publicRoute)
 	NewLoginRoute(env, timeout, db, publicRoute)
+	protectedRoute.Use(middlewares.JwtAuthMiddleware("hihi"))
 	NewUserRouter(env, timeout, db, protectedRoute)
 	NewRefreshTokenRoute(env, timeout, db, publicRoute)
 	NewProductRoute(env, timeout, db, publicRoute)
 	//NewSignInRoute(env, timeout, db, publicRoute)
-	//protectedRoute.Use(middleware.JwtAuthMiddleware(os.Getenv("SECRET_KEY")))
+
 	//NewResourceRoute(env, timeout, db, protectedRoute)
+
 }
