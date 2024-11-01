@@ -68,14 +68,14 @@ func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appc
 	}
 
 	// Create access token
-	accessToken, err = tokenutil.CreateAccessToken(user, env.ACCESS_SECRET, int(env.ACCESS_TOK_EXP))
+	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, int(env.ACCESS_TOK_EXP))
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
 	// Create refresh token
-	refreshToken, err = tokenutil.CreateRefreshToken(user, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return

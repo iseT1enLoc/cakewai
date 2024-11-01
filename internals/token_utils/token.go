@@ -68,12 +68,13 @@ func ExtractIDFromToken(requestToken string, secret string) (string, error) {
 		}
 		return []byte(secret), nil
 	})
+	fmt.Println("Line 71 thot not cuoc tinh")
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Println("before")
 	claims, ok := token.Claims.(jwt.MapClaims)
-
+	fmt.Println("after")
 	if !ok && !token.Valid {
 		return "", apperror.ErrInvalidToken
 	}

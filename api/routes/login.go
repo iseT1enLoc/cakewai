@@ -14,8 +14,9 @@ import (
 
 func NewLoginRoute(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.RouterGroup) {
 	repo := repository.NewUserRepository(db, "users")
+	RT_repository := repository.NewrefreshTokenRepository(db, "refresh_token")
 	sc := handlers.LoginHandler{
-		LoginUsecase: usecase.NewLoginUseCase(repo, timeout),
+		LoginUsecase: usecase.NewLoginUseCase(repo, RT_repository, timeout),
 		Env:          env,
 	}
 	r.POST("/login", sc.LoginHandler())

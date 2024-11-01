@@ -12,8 +12,8 @@ type SignupRequest struct {
 }
 
 type SignupResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type SignupUseCase interface {

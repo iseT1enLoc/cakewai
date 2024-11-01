@@ -56,13 +56,13 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		return
 	}
 
-	accessToken, err = tokenutil.CreateAccessToken(user, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	refreshToken, err = tokenutil.CreateRefreshToken(user, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return

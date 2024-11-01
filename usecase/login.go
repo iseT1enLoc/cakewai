@@ -15,8 +15,9 @@ import (
 )
 
 type loginUsecase struct {
-	userRepository repository.UserRepository
-	contextTimeOut time.Duration
+	userRepository   repository.UserRepository
+	refreshTokenrepo repository.RefreshTokenRepository
+	contextTimeOut   time.Duration
 }
 
 // Login implements domain.LoginUseCase.
@@ -24,6 +25,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 	var user *domain.User
 	fmt.Print("line 25 login usecase")
 	user, err = l.userRepository.GetUserByEmail(ctx, request.Email)
+	fmt.Printf("\nUser id of this function is that %v", user.Id)
 	if err != nil {
 		log.Error(err)
 		return
@@ -45,25 +47,29 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 	}
 	fmt.Print("line 43 login usecase")
 	arg := "hihi"
-	accessToken, err = tokenutil.CreateAccessToken(user, arg, time.Now().Second()*3600)
+	accessToken, err = tokenutil.CreateAccessToken(user.Id, arg, time.Now().Second()*3600)
 	fmt.Printf("\n Create Access token %s\n", arg)
 	if err != nil {
 		log.Error(err)
 		return
 	}
+	fmt.Println("Token id from line 55")
+	//refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 
-	refreshToken, err = tokenutil.CreateRefreshToken(user, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	refreshtoken, err := l.refreshTokenrepo.InsertRefreshTokenToDB(ctx, user.Id.Hex(), env)
+	fmt.Println("line 59 vui ve vui ve")
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	return accessToken, refreshToken, nil
+	return accessToken, refreshtoken, nil
 }
 
-func NewLoginUseCase(user repository.UserRepository, timeout time.Duration) domain.LoginUseCase {
+func NewLoginUseCase(user repository.UserRepository, refreshtoken repository.RefreshTokenRepository, timeout time.Duration) domain.LoginUseCase {
 	return &loginUsecase{
-		userRepository: user,
-		contextTimeOut: timeout,
+		userRepository:   user,
+		refreshTokenrepo: refreshtoken,
+		contextTimeOut:   timeout,
 	}
 }

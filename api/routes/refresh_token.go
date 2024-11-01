@@ -14,10 +14,11 @@ import (
 )
 
 func NewRefreshTokenRoute(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.RouterGroup) {
-	repo := repository.NewUserRepository(db, "users")
+	repo := repository.NewrefreshTokenRepository(db, "refresh_token")
 	sc := handlers.RefreshTokenHandler{
 		RefreshTokenUsecase: usecase.NewRefreshTokenUseCase(repo, timeout),
 		Env:                 env,
 	}
 	r.GET("/refreshtoken", middlewares.TraceMiddleware("refresh token middlware"), sc.RefreshTokenHandler())
+	r.PUT("/revoke_token", middlewares.TraceMiddleware("Revoke token middlware"), sc.RevokeRefreshTokenHandler())
 }

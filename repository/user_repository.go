@@ -140,12 +140,11 @@ func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.Us
 	print("Enter repository get user by id")
 	ObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Fatal("Error converting id string to object id")
-
+		log.Print(err)
 	}
 	err = collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&fuser)
 	print(fuser.Name)
-	return &fuser, err
+	return &fuser, nil
 }
 
 // GetUsers implements UserRepository.

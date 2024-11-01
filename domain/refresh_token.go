@@ -11,7 +11,7 @@ import (
 
 type RefreshTokenRequest struct {
 	ID           primitive.ObjectID `json:"_id" bson:"_id"`
-	RefreshToken string             `form:"refresh_token" binding:"required" json:"refresh_token" bson:"refresh_token"`
+	RefreshToken string             ` json:"refresh_token" bson:"refresh_token" form:"refresh_token" binding:"required"`
 	UserID       string             `json:"user_id" bson:"user_id"`
 	ExpireAt     time.Time          `json:"expire_at" bson:"expire_at"`
 	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
@@ -22,18 +22,25 @@ type RefreshTokenRequest struct {
 }
 
 type RefreshTokenResponse struct {
-	ID           primitive.ObjectID `json:"_id" bson:"_id"`
-	AccessToken  string             `json:"accessToken"`
-	RefreshToken string             `json:"refreshToken"`
-	UserID       string             `json:"user_id" bson:"user_id"`
-	ExpireAt     time.Time          `json:"expire_at" bson:"expire_at"`
-	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
-	RevokeAt     time.Time          `json:"revoke_at" bson:"revoke_at"`
-	ReplaceByRT  string             `json:"replaced_token" bson:"replace_token"`
-	IsActive     bool               `json:"is_active" bson:"is_active"`
-	IsExpire     bool               `json:"is_expire" bson:"is_expire"`
+	ID           primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	AccessToken  string             `json:"access_token" bson:"access_token"`
+	RefreshToken string             `json:"refresh_token" bson:"refresh_token"`
+	UserID       string             `json:"user_id" bson:"user_id,omitempty"`
+	ExpireAt     time.Time          `json:"expire_at" bson:"expire_at,omitempty"`
+	CreatedAt    time.Time          `json:"created_at" bson:"created_at,omitempty"`
+	RevokeAt     time.Time          `json:"revoke_at" bson:"revoke_at,omitempty"`
+	ReplaceByRT  string             `json:"replaced_token" bson:"replace_token,omitempty"`
+	IsActive     bool               `json:"is_active" bson:"is_active,omitempty"`
+	IsExpire     bool               `json:"is_expire" bson:"is_expire,omitempty"`
 }
-
+type RefreshShortResponse struct {
+	AccessToken  string `json:"access_token" bson:"access_token"`
+	RefreshToken string `json:"refresh_token" bson:"refresh_token"`
+}
 type RefreshTokenUseCase interface {
-	RefreshToken(ctx context.Context, request RefreshTokenRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error)
+	RefreshToken(ctx context.Context, request RefreshTokenRequest, currentRT string, env *appconfig.Env) (accessToken string, refreshToken string, err error)
+	RevokeToken(ctx context.Context, current_RT string, env *appconfig.Env) error
+	InsertRefreshTokenToDB(ctx context.Context, refresh_token RefreshTokenRequest, user_id string, env *appconfig.Env) (string, error)
+	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*RefreshTokenRequest, error)
+	UpdateRefreshTokenChanges(ctx context.Context, updatedRT RefreshTokenRequest, env *appconfig.Env) (*RefreshTokenRequest, error)
 }
