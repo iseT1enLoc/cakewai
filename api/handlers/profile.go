@@ -2,6 +2,7 @@ package handlers
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
 	"context"
 	"fmt"
@@ -16,6 +17,33 @@ import (
 type UserController struct {
 	UserUseCase domain.UserUseCase
 	Env         *appconfig.Env
+}
+
+func (uc *UserController) GetCurrentUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user_id := c.GetString("user_id")
+
+		currentuser, err := uc.UserUseCase.GetUserById(c, user_id)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    401,
+				Message: "Invalid user id",
+				Error:   "can not get user from database",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "this is your user",
+				},
+				Data: currentuser,
+			},
+			Meta: response.Meta{},
+		})
+	}
 }
 
 func (uc *UserController) GetUsers() gin.HandlerFunc {

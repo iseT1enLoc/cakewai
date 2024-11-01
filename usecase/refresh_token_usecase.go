@@ -6,6 +6,7 @@ import (
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 	"cakewai/cakewai.com/repository"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -21,23 +22,27 @@ func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.R
 	var id string
 	id, err = tokenutil.ExtractIDFromToken(request.RefreshToken, env.REFRESH_SECRET)
 	if err != nil {
+		fmt.Println("line 25 Oh my godness")
 		log.Error(err)
 		return
 	}
 
 	var user *domain.User
+	fmt.Println("Enter line 30 refresh token usecase line 30")
 	user, err = r.userRepository.GetUserById(ctx, id)
+
+	fmt.Println("Enter line 31 refresh token usecase line 31")
 	if err != nil {
 		log.Error(err)
 		return
 	}
-
+	fmt.Println("Enter refresh token usecase line 35")
 	accessToken, err = tokenutil.CreateAccessToken(user, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return
 	}
-
+	fmt.Println("Enter refresh token usecase linen 41")
 	refreshToken, err = tokenutil.CreateRefreshToken(user, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 	if err != nil {
 		log.Error(err)

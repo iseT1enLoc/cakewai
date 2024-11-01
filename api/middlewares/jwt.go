@@ -14,6 +14,7 @@ import (
 func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
+		fmt.Println("Enter line 17 jwt auth middleware")
 		t := strings.Split(authHeader, " ")
 		if len(t) == 2 {
 			authToken := t[1]
@@ -41,8 +42,10 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 
 				// Set user ID in context
 				c.Set("user_id", userID)
+
 				fmt.Printf("USER ID: %s\n", userID)
 				c.Next() // Continue to the next handler
+				fmt.Println("After c.next")
 				return
 			}
 			fmt.Printf("print at line 44 jwtAuthMiddleWare")
