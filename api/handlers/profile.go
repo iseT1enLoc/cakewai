@@ -21,9 +21,16 @@ type UserController struct {
 
 func (uc *UserController) GetCurrentUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user_id := c.GetString("user_id")
-
-		currentuser, err := uc.UserUseCase.GetUserById(c, user_id)
+		//user_id := c.GetString("user_id")
+		userID, exists := c.Get("user_id")
+		if !exists {
+			fmt.Print("User ID not found in context")
+			return
+		}
+		userIDStr := userID.(string) // Type assertion if it’s a string
+		fmt.Printf("/n The current user is %v", userIDStr)
+		fmt.Println()
+		currentuser, err := uc.UserUseCase.GetUserById(c, "672167f95b55a7c71f00f18a")
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{

@@ -21,7 +21,7 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 		fmt.Printf("line 21 login handler")
 		// Bind JSON request body to LoginRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"erorr": err})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
 		fmt.Print("line 27 login handler")
@@ -36,6 +36,8 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}
+		// Set user ID in context
+
 		fmt.Print("line 39 login handler")
 		c.JSON(http.StatusOK, response)
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	apperror "cakewai/cakewai.com/component/apperr"
 	"cakewai/cakewai.com/domain"
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 
@@ -33,17 +34,23 @@ type refreshtokenRepository struct {
 func (r *refreshtokenRepository) UpdateRefreshTokenChanges(ctx context.Context, updatedRT domain.RefreshTokenRequest, env *appconfig.Env) (*domain.RefreshTokenRequest, error) {
 	collection := r.db.Collection(r.collection_name)
 
-	oid := primitive.ObjectIDFromHex(updateRT.ID)
+	oid, err := primitive.ObjectIDFromHex(updatedRT.ID.Hex())
 	// Define the filter by _id
-	filter := bson.M{"_id": updateRT.ID}
+	filter := bson.M{"_id": oid}
 
 	// Use $set to specify which fields to update
+	// Use $set to specify which fields to update
 	update := bson.M{
-		"$set": newValues,
+		"$set": bson.M{
+			"revoke_at":     time.Now().Local(),
+			"replace_token": updatedRT.RefreshToken,
+			"is_active":     false,
+			"is_expire":     true,
+		},
 	}
 
 	// Perform the update operation
-	result, err := collection.UpdateOne(ctx, filter, update)
+	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +84,9 @@ func (r *refreshtokenRepository) GetRefreshTokenFromDB(ctx context.Context, curr
 func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, err error) {
 	//get current refresh token from database
 	refresh_token, err := r.GetRefreshTokenFromDB(ctx, current_RT, env)
+	if refresh_token.IsExpire || !refresh_token.IsActive {
+		return "", apperror.RefreshTokenInvalid
+	}
 	if err != nil {
 		log.Error(err)
 		return "", err

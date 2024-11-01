@@ -13,6 +13,7 @@ var (
 	ErrFailedGenerateJWT = errors.New("failed generate access token")
 	ErrInvalidIsActive   = errors.New("invalid is_active")
 	ErrStatusValue       = errors.New("status should be 0 or 1")
+	RefreshTokenInvalid  = errors.New("Refresh token invalid")
 
 	ErrFailedGetTokenInformation = errors.New("failed to get token information")
 	ErrUserNotAllowed            = errors.New("user not allowed")
