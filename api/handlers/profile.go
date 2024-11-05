@@ -62,11 +62,21 @@ func (uc *UserController) GetUsers() gin.HandlerFunc {
 		users, err := uc.UserUseCase.GetListUsers(ctx)
 		if err != nil {
 			log.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    0,
+				Message: "Error while query database",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, users)
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully get all users",
+			},
+			Data: users,
+		})
 	}
 }
 func (uc *UserController) GetUserById() gin.HandlerFunc {
@@ -87,11 +97,21 @@ func (uc *UserController) GetUserById() gin.HandlerFunc {
 		user, err := uc.UserUseCase.GetUserById(c.Request.Context(), sdParam)
 		if err != nil {
 			log.Error(err)
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while query database",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, user)
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully get user by id",
+			},
+			Data: user,
+		})
 	}
 }
 func (uc *UserController) UpdateUser() gin.HandlerFunc {
@@ -103,7 +123,11 @@ func (uc *UserController) UpdateUser() gin.HandlerFunc {
 		userId, err := primitive.ObjectIDFromHex(userIDParam)
 		if err != nil {
 			log.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Can not convert user id to hexa",
+				Error:   err.Error(),
+			})
 			return
 		}
 
@@ -111,7 +135,11 @@ func (uc *UserController) UpdateUser() gin.HandlerFunc {
 		var user domain.User
 		if err := c.ShouldBindJSON(&user); err != nil {
 			log.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Can not parsing",
+				Error:   err.Error(),
+			})
 			return
 		}
 
@@ -121,11 +149,21 @@ func (uc *UserController) UpdateUser() gin.HandlerFunc {
 		// Call the use case to update the user
 		if err := uc.UserUseCase.UpdateUser(c.Request.Context(), &user); err != nil {
 			log.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while querying database",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "Success"})
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Update user successfully",
+			},
+			Data: user.Id,
+		})
 	}
 }
 func (uc *UserController) DeleteUser() gin.HandlerFunc {
@@ -144,10 +182,20 @@ func (uc *UserController) DeleteUser() gin.HandlerFunc {
 		// Call the use case to delete the user
 		if err := uc.UserUseCase.DeleteUser(c.Request.Context(), userIDParam); err != nil {
 			log.Error(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error while querying database",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "Success"})
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully delete the user",
+			},
+			Data: userIDParam,
+		})
 	}
 }
