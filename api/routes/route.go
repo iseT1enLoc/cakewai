@@ -23,6 +23,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewUserRouter(env, timeout, db, protectedRoute)
 	NewRefreshTokenRoute(env, timeout, db, publicRoute)
 	NewProductRoute(env, timeout, db, publicRoute)
+	NewRoleRoute(env, timeout, db, publicRoute)
 	//NewSignInRoute(env, timeout, db, publicRoute)
 
 	//NewResourceRoute(env, timeout, db, protectedRoute)
