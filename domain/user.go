@@ -18,9 +18,7 @@ type User struct {
 	Address        Address            `json:"address" bson:"address"`
 	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt      time.Time          `json:"updated_at" bson:"updated_at"`
-	Invoices       []Invoice          `json:"invoices" bson:"invoices"`
-	UserCart       []CartItem         `json:"cart_item" bson:"cart_item"`
-	UserType       string             `json:"user_type" bson:"user_type"`
+	RoleID         string             `json:"role_id" bson:"role_id"`
 }
 
 type UserResponse struct {
@@ -31,6 +29,7 @@ type UserResponse struct {
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
 	CreatedAt      time.Time          `json:"created_at" bson:"createdAt"`
+	RoleID         string             `json:"role_id" bson:"role_id"`
 }
 
 type UserUseCase interface {

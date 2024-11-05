@@ -91,12 +91,12 @@ func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT st
 		log.Error(err)
 		return "", err
 	}
-	id, _ := primitive.ObjectIDFromHex(refresh_token.ID.Hex())
-	token, err := tokenutil.CreateAccessToken(id, env.ACCESS_SECRET, int(time.Second)*3600)
+	id, _ := primitive.ObjectIDFromHex(refresh_token.UserID)
+	token, err := tokenutil.CreateAccessToken(id, env.ACCESS_SECRET, int(time.Second)*300)
 
-	if err != nil {
-		return "", err
-	}
+	// if err != nil {
+	// 	return "", err
+	// }
 	return token, nil
 }
 
@@ -120,22 +120,21 @@ func (r *refreshtokenRepository) RevokeToken(ctx context.Context, current_RT str
 
 // SaveRefreshTokenToDB implements RefreshTokenRepository.
 func (r *refreshtokenRepository) InsertRefreshTokenToDB(ctx context.Context, user_id string, env *appconfig.Env) (string, error) {
-	fmt.Println("Insert Refresh token to db")
+	print("enter refresh database")
 	collection := r.db.Collection(r.collection_name)
-	fmt.Println("line 100 insert rt repository")
 	oid, err := primitive.ObjectIDFromHex(user_id)
 	if err != nil {
 		log.Error(err)
 		return "", err
 	}
-	refresh_token, err := tokenutil.CreateRefreshToken(oid, env.REFRESH_SECRET, int(time.Second)*3600)
+	refresh_token, err := tokenutil.CreateRefreshToken(oid, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 	fmt.Println(refresh_token)
 	fmt.Println("line 107 insert rt repository")
 	refreshtoken := domain.RefreshTokenRequest{
 		ID:           primitive.NewObjectID(),
 		RefreshToken: refresh_token,
 		UserID:       user_id,
-		ExpireAt:     time.Now().Local().Add(time.Second * 3600),
+		ExpireAt:     time.Now().Add(300 * time.Second),
 		CreatedAt:    time.Now().Local(),
 		IsActive:     true,
 		IsExpire:     false,

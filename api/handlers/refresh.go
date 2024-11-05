@@ -22,7 +22,11 @@ func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
 		//Bind JSON request body to RefreshTokenRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			fmt.Println("Error at line 23")
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Can not parsing from json",
+				Error:   err.Error(),
+			})
 			return
 		}
 		fmt.Println(request)
@@ -31,16 +35,26 @@ func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
 		fmt.Println(accessToken)
 		fmt.Println(request.RefreshToken)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened after refresh token",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		response := domain.RefreshShortResponse{
+		responsetoken := domain.RefreshShortResponse{
 			AccessToken:  accessToken,
 			RefreshToken: request.RefreshToken,
 		}
 
-		c.JSON(http.StatusOK, response)
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    200,
+				Message: "Refresh token",
+			},
+			Data: responsetoken,
+		})
 	}
 }
 func (u *RefreshTokenHandler) RevokeRefreshTokenHandler() gin.HandlerFunc {

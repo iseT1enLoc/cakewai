@@ -3,7 +3,6 @@ package repository
 import (
 	"cakewai/cakewai.com/domain"
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -49,42 +48,9 @@ func NewUserRepository(db *mongo.Database, collection string) UserRepository {
 	}
 }
 
-// // CreateUser implements UserRepository.
-// func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-// 	tx, err := u.db.Begin()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer tx.Commit()
-
-// 	if user.GoogleId != "" {
-// 		suuid := uuid.NewString()
-// 		_, err := tx.Exec(`INSERT INTO users (id,email, google_id, name, profile_picture) VALUES (?,?, ?, ?,?)`, suuid, user.Email, user.GoogleId, user.Name, user.ProfilePicture)
-// 		if err != nil {
-// 			tx.Rollback()
-// 			return nil, err
-// 		}
-
-// 		if err != nil {
-// 			tx.Rollback()
-// 			return nil, err
-// 		}
-
-// 		return user, nil
-// 	}
-// 	suuid := uuid.NewString()
-// 	err = tx.QueryRow(`INSERT INTO users (id,email, password,name) VALUES ($1,$2,$3,$4) RETURNING id`, suuid, user.Email, user.Password, user.Name).Scan(&user.Id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-//		return user, nil
-//	}
 func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
 	collection := u.db.Collection(u.collection_name)
 
-	defer cancel()
 	if user.GoogleId != "" {
 		_, err := collection.InsertOne(ctx, bson.M{
 			"_id":             user.Id,
@@ -125,7 +91,6 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	collection := u.db.Collection(u.collection_name)
 	var user domain.User
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
-	fmt.Printf("Error line 115 at user repository %v", err)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +102,6 @@ func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.Us
 	collection := u.db.Collection(u.collection_name)
 
 	var fuser domain.User
-	print("Enter repository get user by id")
 	ObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		log.Print(err)
@@ -170,10 +134,8 @@ func (u *userRepository) GetUsers(ctx context.Context) ([]*domain.User, error) {
 
 // UpdateUser implements UserRepository.
 func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) error {
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
 	collection := u.db.Collection(u.collection_name)
 
-	defer cancel()
 	_, err := collection.UpdateOne(ctx, bson.M{"_id": user.Id},
 		bson.M{"$set": bson.M{"google_id": user.GoogleId,
 			"profile_picture": user.ProfilePicture,
@@ -184,8 +146,7 @@ func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 			"address":         user.Address,
 			"created_at":      user.CreatedAt,
 			"updated_at":      user.UpdatedAt,
-			"invoices":        user.Invoices,
-			"cart_item":       user.UserCart,
+			"role_id":         user.RoleID,
 		}})
 
 	if err != nil {

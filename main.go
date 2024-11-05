@@ -9,6 +9,7 @@ import (
 	"cakewai/cakewai.com/api/middlewares"
 	"cakewai/cakewai.com/api/routes"
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	appctx "cakewai/cakewai.com/component/appcontext"
 	mongodb "cakewai/cakewai.com/infras/mongo"
 
 	"github.com/gin-gonic/gin"
@@ -26,10 +27,10 @@ func main() {
 		log.Fatalf("Error happened while connect to database %v", err)
 	}
 	db := client.Database(os.Getenv("DB_NAME"))
-	//_ = appctx.NewAppContext(db, appcfg.SECRET_KEY)
+	ctx := appctx.NewAppContext(db, appcfg.SECRET_KEY)
 
-	//r.Use(middlewares.CORS())
-	//r.Use(middlewares.Recover(appctx))
+	r.Use(middlewares.CORS())
+	r.Use(middlewares.Recover(ctx))
 
 	routes.SetUp(appcfg, time.Second*3600, db, r)
 	r.Use(middlewares.TraceMiddleware("root middleware"))

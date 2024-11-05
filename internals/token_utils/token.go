@@ -3,6 +3,8 @@ package tokenutil
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	apperror "cakewai/cakewai.com/component/apperr"
@@ -15,9 +17,9 @@ import (
 
 func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, err error) {
 	//exp := time.Now().Add(time.Duration(expiry))
-	exp := time.Now().Local().Add(time.Second * 60)
+	exp := time.Now().Add(time.Second * 60)
 	claims := &domain.JwtCustomClaims{
-		Name: user_id.String(),
+		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
@@ -31,10 +33,12 @@ func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (a
 }
 
 func CreateRefreshToken(user_id primitive.ObjectID, secret string, expiry int) (refreshToken string, err error) {
+
+	exp := time.Now().Add(300 * time.Second)
 	claimsRefresh := &domain.JwtCustomRefreshClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(expiry))),
+			ExpiresAt: jwt.NewNumericDate(exp),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
@@ -70,46 +74,88 @@ func ExtractIDFromToken(requestToken string, secret string) (string, error) {
 	})
 	fmt.Println("Line 71 thot not cuoc tinh")
 	if err != nil {
+		log.Fatalf(err.Error())
 		return "", err
 	}
-	fmt.Println("before")
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*domain.JwtCustomClaims)
 	fmt.Println("after")
 	if !ok && !token.Valid {
 		return "", apperror.ErrInvalidToken
 	}
 
-	sid := claims["_id"].(string)
-
+	sid := claims.ID
+	fmt.Printf("id string type %v", sid)
 	return sid, nil
 }
 
+// func ExtractID(requestToken string, secretKey string) (string, error) {
+// 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
+// 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+
+// 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+
+// 		}
+
+// 		return []byte(secretKey), nil
+// 	})
+// 	fmt.Print(token.Claims)
+// 	claims, ok := token.Claims.(jwt.MapClaims)
+// 	idStr, ok := claims["_id"].(string)
+// 	if !ok {
+// 		return "", errors.New("ID not found or is not a string")
+// 	}
+
+// 	// Check if idStr includes "ObjectID(...)"; if so, strip it
+// 	if strings.HasPrefix(idStr, "ObjectID(\"") && strings.HasSuffix(idStr, "\")") {
+// 		idStr = idStr[10 : len(idStr)-2] // Remove `ObjectID("` and `")` around the hex
+// 	}
+
+// 	// Convert the string to ObjectID
+// 	objID, err := primitive.ObjectIDFromHex(idStr)
+// 	if err != nil {
+// 		return "", fmt.Errorf("failed to parse ObjectID: %w", err)
+// 	}
+
+// 	fmt.Printf("ID is now %v\n", objID.Hex())
+// 	return objID.Hex(), nil
+// }
+
 func ExtractID(requestToken string, secretKey string) (string, error) {
+	// Parse the token with the specified secret key
 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
 		return []byte(secretKey), nil
 	})
+	if err != nil || !token.Valid {
+		return "", fmt.Errorf("invalid token: %w", err)
+	}
+
+	// Extract claims as MapClaims
 	claims, ok := token.Claims.(jwt.MapClaims)
+	fmt.Print(claims)
+	if !ok {
+		return "", errors.New("failed to parse claims")
+	}
 
-	fmt.Printf("\nExtractID in extractID function %s\n", claims["_id"])
+	// Retrieve the ID from the "name" claim
+	idStr, ok := claims["_id"].(string)
+	// Check the "exp" claim
+
+	if !ok {
+		return "", errors.New("expiration time (exp) claim not found")
+	}
+
+	if strings.HasPrefix(idStr, "ObjectID(\"") && strings.HasSuffix(idStr, "\")") {
+		idStr = idStr[10 : len(idStr)-2] // Remove `ObjectID("` and `")` around the hex
+	}
+	// Convert the string to an ObjectID
+	objID, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
-		fmt.Printf("\nerror extractID %s\n\n", err)
-		return "", err
+		return "", fmt.Errorf("failed to parse ObjectID: %w", err)
 	}
 
-	//claims, ok := token.Claims.(jwt.MapClaims)
-
-	if !ok && !token.Valid {
-		return "", errors.ErrUnsupported
-	}
-
-	id := claims["_id"].(string)
-
-	idString := string(id)
-	fmt.Printf("id String: %d", len(idString))
-	return idString, nil
+	fmt.Printf("ID is now %v\n", objID.Hex())
+	return objID.Hex(), nil
 }

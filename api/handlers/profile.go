@@ -23,14 +23,13 @@ func (uc *UserController) GetCurrentUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//user_id := c.GetString("user_id")
 		userID, exists := c.Get("user_id")
+		fmt.Printf("User id is that %v", userID)
 		if !exists {
 			fmt.Print("User ID not found in context")
 			return
 		}
-		userIDStr := userID.(string) // Type assertion if it’s a string
-		fmt.Printf("/n The current user is %v", userIDStr)
-		fmt.Println()
-		currentuser, err := uc.UserUseCase.GetUserById(c, "672167f95b55a7c71f00f18a")
+
+		currentuser, err := uc.UserUseCase.GetUserById(c, userID.(string))
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -48,7 +47,6 @@ func (uc *UserController) GetCurrentUser() gin.HandlerFunc {
 				},
 				Data: currentuser,
 			},
-			Meta: response.Meta{},
 		})
 	}
 }

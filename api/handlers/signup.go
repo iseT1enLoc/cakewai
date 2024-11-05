@@ -2,9 +2,11 @@ package handlers
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
-	"fmt"
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -17,34 +19,43 @@ type SignupController struct {
 
 func (sc *SignupController) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		_, cancel := context.WithTimeout(c, time.Second*time.Duration(c.GetFloat64(sc.Env.TIMEOUT)))
+		defer cancel()
 		var request domain.SignupRequest
-
-		fmt.Print("line 22 at sign up handler")
 		// Decode the JSON request body
 		if err := c.ShouldBindJSON(&request); err != nil {
 			log.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Can not parsing the request",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		fmt.Print("line 30 at signup handler")
 		// Call the signup use case
-		accessToken, refreshToken, err := sc.SignupUseCase.SignUp(c.Request.Context(), request, sc.Env)
+		accessToken, refreshToken, err := sc.SignupUseCase.SignUp(c, request, sc.Env)
 		if err != nil {
 			log.Error(err)
-			fmt.Println("Error happened in line 35 sign up handler")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Email is already existed"})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Email is already existed",
+				Error:   err.Error(),
+			})
 			return
 		}
-
-		fmt.Print("line 39 at sign up handler")
 		// Create the response object
 		signupResponse := domain.SignupResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}
-		fmt.Print("line 45 sign up handler")
 		// Send the response
-		c.JSON(http.StatusOK, signupResponse)
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusCreated,
+				Message: "Register successfully",
+			},
+			Data: signupResponse,
+		})
 	}
 }

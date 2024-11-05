@@ -17,8 +17,9 @@ import (
 )
 
 type signupUseCase struct {
-	userRepository repository.UserRepository
-	contextTimeout time.Duration
+	userRepository   repository.UserRepository
+	refreshTokenrepo repository.RefreshTokenRepository
+	contextTimeout   time.Duration
 }
 
 // SignUp implements domain.SignupUseCase.
@@ -61,8 +62,9 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		log.Error(err)
 		return
 	}
-
-	refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	uidstring := user.Id.Hex()
+	print(uidstring)
+	refreshToken, err = s.refreshTokenrepo.InsertRefreshTokenToDB(ctx, uidstring, env)
 	if err != nil {
 		log.Error(err)
 		return
@@ -71,9 +73,10 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 	return
 }
 
-func NewSignupUseCase(userRepository repository.UserRepository, timeout time.Duration) domain.SignupUseCase {
+func NewSignupUseCase(userRepository repository.UserRepository, refreshtokenRepo repository.RefreshTokenRepository, timeout time.Duration) domain.SignupUseCase {
 	return &signupUseCase{
-		userRepository: userRepository,
-		contextTimeout: timeout,
+		userRepository:   userRepository,
+		refreshTokenrepo: refreshtokenRepo,
+		contextTimeout:   timeout,
 	}
 }

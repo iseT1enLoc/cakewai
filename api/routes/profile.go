@@ -19,6 +19,7 @@ func NewUserRouter(env *appconfig.Env, timeout time.Duration, db *mongo.Database
 	// 	UserUseCase: usecase.NewUserUseCase(ur, timeout),
 	// 	Env:         env,
 	// }
+
 	uc := &handlers.UserController{
 		UserUseCase: usecase.NewProfileUseCase(timeout, ur),
 		Env:         env,

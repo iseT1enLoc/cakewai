@@ -30,6 +30,7 @@ func (r *refreshTokenUsecase) GetRefreshTokenFromDB(ctx context.Context, current
 // InsertRefreshTokenToDB implements domain.RefreshTokenUseCase.
 func (r *refreshTokenUsecase) InsertRefreshTokenToDB(ctx context.Context, refresh_token domain.RefreshTokenRequest, user_id string, env *appconfig.Env) (string, error) {
 	res, err := r.refreshTokenRepository.InsertRefreshTokenToDB(ctx, user_id, env)
+	print("enter refresh usecase")
 	if err != nil {
 		log.Error(err)
 		return res, err

@@ -46,9 +46,8 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 		return
 	}
 	fmt.Print("line 43 login usecase")
-	arg := "hihi"
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, arg, time.Now().Second()*3600)
-	fmt.Printf("\n Create Access token %s\n", arg)
+	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, time.Now().Second()*3600)
+	fmt.Printf("\n Create Access token %s\n", env.ACCESS_SECRET)
 	if err != nil {
 		log.Error(err)
 		return

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"cakewai/cakewai.com/component/response"
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,11 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 			authorized, err := tokenutil.Is_authorized(authToken, secret)
 			if err != nil {
 				fmt.Printf("Print line 24 at jwt middleware")
-				c.JSON(http.StatusUnauthorized, gin.H{"Error": "Validate token", "errordetail": err})
+				c.JSON(http.StatusUnauthorized, response.FailedResponse{
+					Code:    http.StatusUnauthorized,
+					Message: "Is not authorized",
+					Error:   err.Error(),
+				})
 				fmt.Println(err)
 				c.Abort()
 				return
@@ -34,8 +39,14 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 				fmt.Println("authorized")
 				// Extract user ID from token
 				userID, err := tokenutil.ExtractID(authToken, secret)
+
+				fmt.Printf("print user id after extractID %v", userID)
 				if err != nil {
-					c.JSON(http.StatusUnauthorized, gin.H{"Error": "extract id"})
+					c.JSON(http.StatusForbidden, response.FailedResponse{
+						Code:    http.StatusForbidden,
+						Message: "Fail to extract id",
+						Error:   err.Error(),
+					})
 					c.Abort()
 					return
 				}

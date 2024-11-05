@@ -45,6 +45,7 @@ func (p *profileUseCase) GetListUsers(c context.Context) ([]*domain.UserResponse
 			Email:          user.Email,
 			Phone:          user.Phone,
 			CreatedAt:      user.CreatedAt,
+			RoleID:         user.RoleID,
 		})
 	}
 	return urs, nil
