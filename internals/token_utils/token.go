@@ -17,7 +17,7 @@ import (
 
 func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, err error) {
 	//exp := time.Now().Add(time.Duration(expiry))
-	exp := time.Now().Add(time.Second * 60)
+	exp := time.Now().Add(time.Second * 3600)
 	claims := &domain.JwtCustomClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -34,7 +34,7 @@ func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (a
 
 func CreateRefreshToken(user_id primitive.ObjectID, secret string, expiry int) (refreshToken string, err error) {
 
-	exp := time.Now().Add(300 * time.Second)
+	exp := time.Now().Add(7200 * time.Second)
 	claimsRefresh := &domain.JwtCustomRefreshClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
