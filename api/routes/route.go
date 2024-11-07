@@ -24,4 +24,5 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewProductRoute(env, timeout, db, publicRoute)
 	NewRoleRoute(env, timeout, db, publicRoute)
 	NewCartRoute(env, timeout, db, protectedRoute)
+	NewOrderRoute(env, timeout, db, protectedRoute)
 }
