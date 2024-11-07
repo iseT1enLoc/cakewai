@@ -8,12 +8,15 @@ import (
 	"net/http"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
 type SignupController struct {
 	SignupUseCase domain.SignupUseCase
+	CartUseCase   domain.CartUsecase
 	Env           *appconfig.Env
 }
 
@@ -34,7 +37,7 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 		}
 
 		// Call the signup use case
-		accessToken, refreshToken, err := sc.SignupUseCase.SignUp(c, request, sc.Env)
+		accessToken, refreshToken, uid, err := sc.SignupUseCase.SignUp(c, request, sc.Env)
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -48,6 +51,17 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 		signupResponse := domain.SignupResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
+		}
+		hexid, _ := primitive.ObjectIDFromHex(uid)
+		err = sc.CartUseCase.CreateCartByUserId(c, hexid)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error creating empty cart",
+				Error:   err.Error(),
+			})
+			return
 		}
 		// Send the response
 		c.JSON(http.StatusOK, response.Success{

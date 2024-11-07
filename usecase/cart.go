@@ -16,8 +16,8 @@ type cartUsecase struct {
 }
 
 // DONE
-func (c *cartUsecase) AddCartItemIntoCart(context context.Context, item domain.CartItem) (*primitive.ObjectID, error) {
-	_, err := c.cartRepository.AddProductItemIntoCart(context, item)
+func (c *cartUsecase) AddCartItemIntoCart(context context.Context, cardid primitive.ObjectID, item domain.CartItem) (*primitive.ObjectID, error) {
+	_, err := c.cartRepository.AddProductItemIntoCart(context, cardid, item)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -32,7 +32,7 @@ func (c *cartUsecase) CreateCartByUserId(context context.Context, UserId primiti
 }
 
 // DONE
-func (c *cartUsecase) GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]*domain.CartItem, error) {
+func (c *cartUsecase) GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]domain.CartItem, error) {
 	items, err := c.cartRepository.GetAllItemsInCartByUserID(context, user_id)
 	if err != nil {
 		log.Print(err)
@@ -59,8 +59,8 @@ func (c *cartUsecase) RemoveItemFromCart(context context.Context, cartID primiti
 }
 
 // DONE
-func (c *cartUsecase) UpdateCartItemByID(context context.Context, updatedItem domain.CartItem) (*domain.CartItem, error) {
-	cart_item, err := c.cartRepository.UpdateProductItemByID(context, updatedItem)
+func (c *cartUsecase) UpdateCartItemByID(context context.Context, cardID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
+	cart_item, err := c.cartRepository.UpdateProductItemByID(context, cardID, updatedItem)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -70,7 +70,7 @@ func (c *cartUsecase) UpdateCartItemByID(context context.Context, updatedItem do
 
 func NewCartUsecase(cart_repo repository.CartRepository, timeout time.Duration) domain.CartUsecase {
 	return &cartUsecase{
-		cartRepository: nil,
+		cartRepository: cart_repo,
 		timeout:        timeout,
 	}
 }

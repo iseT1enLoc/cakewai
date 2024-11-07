@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"cakewai/cakewai.com/domain"
@@ -15,11 +16,11 @@ import (
 
 type CartRepository interface {
 	CreateCartByUserId(context context.Context, UserId primitive.ObjectID) error
-	GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]*domain.CartItem, error)
+	GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]domain.CartItem, error)
 	GetCartByUserID(context context.Context, UserId primitive.ObjectID) (*domain.Cart, error)
 	RemoveItemFromCart(context context.Context, cartID primitive.ObjectID, product_id primitive.ObjectID, variant string) error
-	AddProductItemIntoCart(context context.Context, item domain.CartItem) (*domain.CartItem, error)
-	UpdateProductItemByID(context context.Context, updatedItem domain.CartItem) (*domain.CartItem, error)
+	AddProductItemIntoCart(context context.Context, cardid primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error)
+	UpdateProductItemByID(context context.Context, cardID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error)
 }
 type cartRepository struct {
 	db              *mongo.Database
@@ -27,9 +28,13 @@ type cartRepository struct {
 }
 
 // DONE
-func (c *cartRepository) AddProductItemIntoCart(context context.Context, item domain.CartItem) (*domain.CartItem, error) {
+func (c *cartRepository) AddProductItemIntoCart(context context.Context, cartid primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error) {
 	collection := c.db.Collection(c.collection_name)
-	_, err := collection.InsertOne(context, item)
+
+	update := bson.D{{"$push", bson.M{"items": item}}} //push||set||... read later
+	filter := bson.M{"_id": cartid}
+	res, err := collection.UpdateOne(context, filter, update)
+	fmt.Printf("Row EFFECT %v", res.ModifiedCount)
 	if err != nil {
 		return nil, err
 	}
@@ -51,20 +56,17 @@ func (c *cartRepository) CreateCartByUserId(context context.Context, userID prim
 }
 
 // DONE
-func (c *cartRepository) GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]*domain.CartItem, error) {
+func (c *cartRepository) GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]domain.CartItem, error) {
 	collection := c.db.Collection(c.collection_name)
-	items_cursor, err := collection.Find(context, bson.D{})
+	var card domain.Cart
+	err := collection.FindOne(context, bson.M{"user_id": user_id}).Decode(&card)
+
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
-	var items_list []*domain.CartItem
-	err = items_cursor.All(context, &items_list)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	return items_list, nil
+
+	return card.Items, nil
 }
 
 // DONE
@@ -83,20 +85,53 @@ func (c *cartRepository) GetCartByUserID(context context.Context, userID primiti
 // DONE
 func (c *cartRepository) RemoveItemFromCart(context context.Context, cartID primitive.ObjectID, product_id primitive.ObjectID, variant string) error {
 	collection := c.db.Collection(c.collection_name)
-	cart_item_filter := bson.M{"product_id": product_id, "variant": variant}
-	_, err := collection.DeleteOne(context, cart_item_filter)
+	// Define the filter to find the document
+	cart_item_filter := bson.M{"_id": cartID}
+
+	// Define the update to pull an item from the items array
+	update := bson.M{
+		"$pull": bson.M{
+			"items": bson.M{
+				"product_id": product_id,
+				"variant":    variant,
+			},
+		},
+	}
+	_, err := collection.UpdateOne(context, cart_item_filter, update)
+
 	log.Error(err)
 	return err
 }
 
 // DONE
-func (c *cartRepository) UpdateProductItemByID(context context.Context, updatedItem domain.CartItem) (*domain.CartItem, error) {
+func (c *cartRepository) UpdateProductItemByID(context context.Context, cartID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
 	collection := c.db.Collection(c.collection_name)
-	cart_item_filter := bson.M{"product_id": updatedItem.ProductId, "variant": updatedItem.Variant}
-	_, err := collection.UpdateOne(context, cart_item_filter, updatedItem)
+	// Define the filter to locate the specific cart and item
+	filter := bson.M{
+		"_id": cartID,
+		"items": bson.M{
+			"$elemMatch": bson.M{
+				"product_id": updatedItem.ProductId,
+				"variant":    updatedItem.Variant,
+			},
+		},
+	}
+
+	// Define the update to set a new quantity
+	update := bson.M{
+		"$set": bson.M{
+			"items.$.buy_quantity": updatedItem.BuyQuantity, // Use the positional operator `$` to target the matched item
+		},
+	}
+	res, err := collection.UpdateOne(context, filter, update)
 	if err != nil {
 		log.Error(err)
 		return nil, err
+	}
+	if res.ModifiedCount == 0 {
+		fmt.Println("No matching item found to update")
+	} else {
+		fmt.Println("Item updated successfully!")
 	}
 	return &updatedItem, nil
 }

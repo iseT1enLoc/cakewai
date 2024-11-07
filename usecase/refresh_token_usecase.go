@@ -60,7 +60,7 @@ func (r *refreshTokenUsecase) UpdateRefreshTokenChanges(ctx context.Context, upd
 
 // RefreshToken implements domain.RefreshTokenUseCase.
 func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, currentRT string, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
-	//FOCUS-------------------------------------------------------------
+	//FOCUS------------
 	_, errs := tokenutil.ExtractID(currentRT, env.REFRESH_SECRET)
 	if errs != nil {
 		fmt.Println("line 25 Oh my godness")

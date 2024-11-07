@@ -14,9 +14,11 @@ import (
 
 func NewSignUpRoute(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin.RouterGroup) {
 	repo := repository.NewUserRepository(db, "users")
+	cart_repo := repository.NewCartRepository(db, "cart")
 	repo_refresh := repository.NewrefreshTokenRepository(db, "refresh_token")
 	sc := handlers.SignupController{
 		SignupUseCase: usecase.NewSignupUseCase(repo, repo_refresh, timeout),
+		CartUseCase:   usecase.NewCartUsecase(cart_repo, timeout),
 		Env:           env,
 	}
 	r.POST("/signup", sc.SignUp())

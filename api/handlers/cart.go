@@ -64,6 +64,7 @@ func (ch *CartHandler) GetAllItemsInCartByUserID() gin.HandlerFunc {
 			return
 		}
 		objhex, err := primitive.ObjectIDFromHex(userID.(string))
+		fmt.Printf("Object id hexa from the cart get all items handler %v", objhex)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
@@ -130,10 +131,13 @@ func (ch *CartHandler) GetCartByUserID() gin.HandlerFunc {
 // http://localhost:8080/api/v1/items?category=books&price_min=10&price_max=50
 func (ch *CartHandler) RemoveItemFromCart() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		cart_id := ctx.Query("cart_id")
-		productID := ctx.Query("product_id")
-		variant := ctx.Query("variant")
+		cart_id, _ := ctx.GetQuery("card_id")
+		productID, _ := ctx.GetQuery("product_id")
+		variant, _ := ctx.GetQuery("variant")
 		if productID == "" || variant == "" || cart_id == "" {
+			fmt.Printf("\nPRODUCT ID: %s\n", productID)
+			fmt.Printf("CARD ID: %s\n", productID)
+			fmt.Printf("VARIANT: %s\n", variant)
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
 				Message: "cart id, productid or variant is empty",
@@ -180,7 +184,9 @@ func (ch *CartHandler) AddCartItemIntoCart() gin.HandlerFunc {
 			})
 			return
 		}
-		item_id, err := ch.CartUseCase.AddCartItemIntoCart(ctx, item)
+		fmt.Print(item)
+		hexid, _ := primitive.ObjectIDFromHex("672c177940cd12447f01ee81")
+		item_id, err := ch.CartUseCase.AddCartItemIntoCart(ctx, hexid, item)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
@@ -192,7 +198,7 @@ func (ch *CartHandler) AddCartItemIntoCart() gin.HandlerFunc {
 		ctx.JSON(http.StatusCreated, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusCreated,
-				Message: "Successfully create empty cart",
+				Message: "Successfully adding item into cart",
 			},
 			Data: item_id,
 		})
@@ -209,7 +215,9 @@ func (ch *CartHandler) UpdateCartItemByID() gin.HandlerFunc {
 			})
 			return
 		}
-		updatedItem, err := ch.CartUseCase.UpdateCartItemByID(ctx, updated_item)
+		card_id, _ := ctx.GetQuery("card_id")
+		hex_card_id, _ := primitive.ObjectIDFromHex(card_id)
+		updatedItem, err := ch.CartUseCase.UpdateCartItemByID(ctx, hex_card_id, updated_item)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,

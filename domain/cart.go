@@ -13,7 +13,7 @@ type CartItem struct {
 	Variant     string             `json:"variant" bson:"variant"`
 	ImageLink   string             `json:"image_link" bson:"image_link"`
 	Price       float64            `json:"price,omitempty" bson:"price,omitempty"`
-	BuyQuantity int                `json:"buyQuantity" bson:"buyQuantity"`
+	BuyQuantity int                `json:"buy_quantity" bson:"buy_quantity"`
 }
 type Cart struct {
 	CartID    primitive.ObjectID `json:"cart_id" bson:"_id"`
@@ -25,9 +25,9 @@ type Cart struct {
 
 type CartUsecase interface {
 	CreateCartByUserId(context context.Context, UserId primitive.ObjectID) error
-	GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]*CartItem, error)
+	GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]CartItem, error)
 	GetCartByUserID(context context.Context, userID primitive.ObjectID) (*Cart, error)
 	RemoveItemFromCart(context context.Context, cartID primitive.ObjectID, product_id primitive.ObjectID, variant string) error
-	AddCartItemIntoCart(context context.Context, item CartItem) (*primitive.ObjectID, error)
-	UpdateCartItemByID(context context.Context, updatedItem CartItem) (*CartItem, error)
+	AddCartItemIntoCart(context context.Context, cardid primitive.ObjectID, item CartItem) (*primitive.ObjectID, error)
+	UpdateCartItemByID(context context.Context, carID primitive.ObjectID, updatedItem CartItem) (*CartItem, error)
 }

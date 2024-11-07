@@ -18,5 +18,5 @@ type SignupResponse struct {
 }
 
 type SignupUseCase interface {
-	SignUp(ctx context.Context, request SignupRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error)
+	SignUp(ctx context.Context, request SignupRequest, env *appconfig.Env) (accessToken string, refreshToken string, uid string, err error)
 }

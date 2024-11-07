@@ -23,7 +23,7 @@ type signupUseCase struct {
 }
 
 // SignUp implements domain.SignupUseCase.
-func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
+func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest, env *appconfig.Env) (accessToken string, refreshToken string, uid string, err error) {
 	encryptedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(request.Password),
 		bcrypt.DefaultCost,
@@ -38,7 +38,7 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		refreshToken = ""
 		var ErrEmailAlreadyRegistered = apperror.ErrEmailAlreadyExist
 		log.Error(ErrEmailAlreadyRegistered)
-		return "", "", ErrEmailAlreadyRegistered
+		return "", "", "", ErrEmailAlreadyRegistered
 	}
 
 	request.Password = string(encryptedPassword)
@@ -64,13 +64,13 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		return
 	}
 	uidstring := user.Id.Hex()
-	print(uidstring)
+
 	refreshToken, err = s.refreshTokenrepo.InsertRefreshTokenToDB(ctx, uidstring, env)
 	if err != nil {
 		log.Error(err)
 		return
 	}
-
+	uid = uidstring
 	return
 }
 
