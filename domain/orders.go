@@ -9,7 +9,7 @@ import (
 
 type Payment struct {
 	PaymentMethod string `json:"payment_method" bson:"payment_method"`
-	IsPaid        bool   `json:"is_paid" bson:"is_paid"`
+	IsPaid        int    `json:"is_paid" bson:"is_paid"`
 }
 type Order struct {
 	ID              primitive.ObjectID `json:"id" bson:"_id"`
@@ -23,8 +23,13 @@ type Order struct {
 	PaymentInfo     Payment            `json:"payment_info" bson:"payment_info"`
 }
 type PaymentReq struct {
-	Order_id string `json:"order_id"`
-	Is_paid  int    `json:"is_paid"`
+	Order_id    string  `json:"order_id"`
+	PaymentInfo Payment `json:"payment_info" bson:"payment_info"`
+}
+type OrderReq struct {
+	OrderItems     []CartItem `json:"items" bson:"items"`
+	ShippingAdress Address    `json:"shipping_address" bson:"shipping_address"`
+	PaymentInfo    Payment    `json:"payment_info" bson:"payment_info"`
 }
 type OrderUsecase interface {
 	CreateOrder(context context.Context, order Order) (*Order, error)

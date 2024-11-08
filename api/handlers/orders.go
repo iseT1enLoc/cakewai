@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -32,8 +33,8 @@ func (o *OrderHandler) CreatOrderHandler() gin.HandlerFunc {
 			})
 			return
 		}
-		var order domain.Order
-		if err := ctx.ShouldBindJSON(&order); err != nil {
+		var order_req domain.OrderReq
+		if err := ctx.ShouldBindJSON(&order_req); err != nil {
 			fmt.Print("User ID not found in context")
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
@@ -52,7 +53,31 @@ func (o *OrderHandler) CreatOrderHandler() gin.HandlerFunc {
 			})
 			return
 		}
-		order.CustomerID = hex_user_id
+		//var order domain.Order
+		order := domain.Order{
+			ID:              primitive.NewObjectID(),
+			CustomerID:      hex_user_id,
+			OrderItems:      order_req.OrderItems,
+			TotalPrice:      0,
+			OrderStatus:     "pending",
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+			ShippingAddress: order_req.ShippingAdress,
+			PaymentInfo:     order_req.PaymentInfo,
+		}
+		// order.CustomerID = hex_user_id
+		// order.ID = primitive.NewObjectID()
+		// order.CreatedAt = time.Now()
+		// order.UpdatedAt = time.Now()
+		// order.OrderItems = order_req.OrderItems
+		// order.PaymentInfo = order_req.PaymentInfo
+		// order.ShippingAddress = order_req.ShippingAdress
+		// order.OrderStatus = "pending"
+
+		for _, row := range order_req.OrderItems {
+			order.TotalPrice += row.Price * float64(row.BuyQuantity)
+		}
+
 		_, err = o.OrderUsecase.CreateOrder(ctx, order)
 		if err != nil {
 			fmt.Print("User ID not found in context")
@@ -145,7 +170,7 @@ func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
 			})
 			return
 		}
-		row_affected, err := o.OrderUsecase.UpdateOrderPaymentStatus(ctx, reqhexid, req.Is_paid)
+		row_affected, err := o.OrderUsecase.UpdateOrderPaymentStatus(ctx, reqhexid, req.PaymentInfo.IsPaid)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
@@ -166,6 +191,7 @@ func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
 func (o *OrderHandler) GetOrderByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		order_param := ctx.Param("order_id")
+
 		objID, err := primitive.ObjectIDFromHex(order_param)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{

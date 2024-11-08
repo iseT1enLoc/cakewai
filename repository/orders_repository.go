@@ -29,7 +29,7 @@ func (o *orderRepository) UpdateOrderStatus(context context.Context, order_id pr
 	collection := o.db.Collection(o.collection_name)
 	filter := bson.M{"_id": order_id}
 	updated_payment_status := bson.M{"$set": bson.M{
-		"payment_info.$.is_paid": is_paid,
+		"payment_info.is_paid": is_paid,
 	}}
 	res, err := collection.UpdateOne(context, filter, updated_payment_status)
 	if err != nil {
@@ -82,8 +82,8 @@ func (o *orderRepository) GetOrderByID(context context.Context, ID primitive.Obj
 // DONE
 func (o *orderRepository) UpdateOrder(context context.Context, updatedOrder domain.Order) (*domain.Order, error) {
 	collection := o.db.Collection(o.collection_name)
-
-	_, err := collection.UpdateOne(context, bson.M{"_id": updatedOrder.ID}, updatedOrder)
+	updatedorder := bson.M{"$set": updatedOrder}
+	_, err := collection.UpdateOne(context, bson.M{"_id": updatedOrder.ID}, updatedorder)
 	if err != nil {
 		log.Error(err)
 		return nil, err
