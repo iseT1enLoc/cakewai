@@ -348,3 +348,27 @@ func (pc *ProductHandler) UpdateProductVarientByName() gin.HandlerFunc {
 
 	}
 }
+
+func (pc *ProductHandler) GetProductByProductTypeID() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("type_id")
+
+		products, err := pc.ProductUsecase.GetProductByProductTypeID(ctx, id)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while querying database, maybe invalid product type",
+				Error:   err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully get product by product type id",
+			},
+			Data: products,
+		})
+	}
+}

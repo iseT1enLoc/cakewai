@@ -44,6 +44,7 @@ type ProductUsecase interface {
 	// Delete product by ID
 	DeleteProductById(ctx context.Context, id primitive.ObjectID) error
 
+	GetProductByProductTypeID(ctx context.Context, id string) ([]*Product, error)
 	// Add a variant to a product
 	AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant ProductVariant) (int64, error)
 

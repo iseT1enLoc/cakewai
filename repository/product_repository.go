@@ -22,6 +22,9 @@ type ProductRepository interface {
 	// Get product by ID:DONE------------
 	GetProductById(ctx context.Context, id primitive.ObjectID) (*domain.Product, error)
 
+	// Get product by ID:DONE------------
+	GetProductByProductTypeID(ctx context.Context, id string) ([]*domain.Product, error)
+
 	// Get all products: DONE------------
 	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
 
@@ -45,29 +48,23 @@ type productRepository struct {
 	collection_name string
 }
 
-// CreateProductType implements ProductTypeRepository.
-func (p *productRepository) CreateProductType(context context.Context) error {
-	panic("unimplemented")
-}
+// GetProductByProductTypeID implements ProductRepository.
+func (p *productRepository) GetProductByProductTypeID(ctx context.Context, id string) ([]*domain.Product, error) {
+	collection := p.db.Collection(p.collection_name)
+	var products []*domain.Product
+	cur, err := collection.Find(ctx, bson.M{"product_type_id": id})
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	fmt.Println("LINE 60 GET PRODUCT BY PRODUCT TYPE ID")
 
-// GetAllProductType implements ProductTypeRepository.
-func (p *productRepository) GetAllProductType(context context.Context) ([]domain.ProductType, error) {
-	panic("unimplemented")
-}
-
-// GetProductTypeById implements ProductTypeRepository.
-func (p *productRepository) GetProductTypeById(context context.Context, product_type_id int) (*domain.ProductType, error) {
-	panic("unimplemented")
-}
-
-// RemoveProductType implements ProductTypeRepository.
-func (p *productRepository) RemoveProductType(context context.Context, product_type_id int) error {
-	panic("unimplemented")
-}
-
-// UpdateProductType implements ProductTypeRepository.
-func (p *productRepository) UpdateProductType(context context.Context, updated_product_type domain.ProductType) (*domain.ProductType, error) {
-	panic("unimplemented")
+	err = cur.All(ctx, &products)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return products, nil
 }
 
 // AddProductVariant implements ProductRepository.

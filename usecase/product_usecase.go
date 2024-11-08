@@ -16,29 +16,14 @@ type productUsecase struct {
 	timeout    time.Duration
 }
 
-// CreateProductType implements domain.ProductTypeUsecase.
-func (p *productUsecase) CreateProductType(context context.Context) error {
-	panic("unimplemented")
-}
-
-// GetAllProductType implements domain.ProductTypeUsecase.
-func (p *productUsecase) GetAllProductType(context context.Context) ([]domain.ProductType, error) {
-	panic("unimplemented")
-}
-
-// GetProductTypeById implements domain.ProductTypeUsecase.
-func (p *productUsecase) GetProductTypeById(context context.Context, product_type_id int) (*domain.ProductType, error) {
-	panic("unimplemented")
-}
-
-// RemoveProductType implements domain.ProductTypeUsecase.
-func (p *productUsecase) RemoveProductType(context context.Context, product_type_id int) error {
-	panic("unimplemented")
-}
-
-// UpdateProductType implements domain.ProductTypeUsecase.
-func (p *productUsecase) UpdateProductType(context context.Context, updated_product_type domain.ProductType) (*domain.ProductType, error) {
-	panic("unimplemented")
+// GetProductByProductTypeID implements domain.ProductUsecase.
+func (p *productUsecase) GetProductByProductTypeID(ctx context.Context, id string) ([]*domain.Product, error) {
+	products, err := p.repository.GetProductByProductTypeID(ctx, id)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return products, nil
 }
 
 // AddProductVariant implements domain.ProductRepository.
@@ -118,6 +103,10 @@ func (p productUsecase) UpdateProductVariant(ctx context.Context, productId prim
 }
 
 func NewProductUsecase(repo repository.ProductRepository, timeout time.Duration) domain.ProductUsecase {
+	// return &productUsecase{
+	// 	repository: repo,
+	// 	timeout:    timeout,
+	// }
 	return &productUsecase{
 		repository: repo,
 		timeout:    timeout,
