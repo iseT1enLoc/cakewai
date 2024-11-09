@@ -3,6 +3,7 @@ package routes
 import (
 	"cakewai/cakewai.com/api/middlewares"
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	"cakewai/cakewai.com/service"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,4 +26,6 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewRoleRoute(env, timeout, db, publicRoute)
 	NewCartRoute(env, timeout, db, protectedRoute)
 	NewOrderRoute(env, timeout, db, protectedRoute)
+	NewProductTypeRoute(env, timeout, db, publicRoute)
+	r.POST("/api/upload", service.UploadCloud())
 }

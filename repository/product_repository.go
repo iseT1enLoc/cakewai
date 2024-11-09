@@ -45,6 +45,31 @@ type productRepository struct {
 	collection_name string
 }
 
+// CreateProductType implements ProductTypeRepository.
+func (p *productRepository) CreateProductType(context context.Context) error {
+	panic("unimplemented")
+}
+
+// GetAllProductType implements ProductTypeRepository.
+func (p *productRepository) GetAllProductType(context context.Context) ([]domain.ProductType, error) {
+	panic("unimplemented")
+}
+
+// GetProductTypeById implements ProductTypeRepository.
+func (p *productRepository) GetProductTypeById(context context.Context, product_type_id int) (*domain.ProductType, error) {
+	panic("unimplemented")
+}
+
+// RemoveProductType implements ProductTypeRepository.
+func (p *productRepository) RemoveProductType(context context.Context, product_type_id int) error {
+	panic("unimplemented")
+}
+
+// UpdateProductType implements ProductTypeRepository.
+func (p *productRepository) UpdateProductType(context context.Context, updated_product_type domain.ProductType) (*domain.ProductType, error) {
+	panic("unimplemented")
+}
+
 // AddProductVariant implements ProductRepository.
 func (p *productRepository) AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant domain.ProductVariant) (int64, error) {
 	c, cancel := context.WithTimeout(ctx, time.Second*10)
@@ -133,17 +158,19 @@ func (p *productRepository) CreateProduct(ctx context.Context, product *domain.P
 		"product_name":    product.ProductName,
 		"image_link":      product.ImageLink,
 		"product_variant": product.Variant,
+		"product_type_id": product.ProductTypeID,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	prod := domain.Product{
-		ProductId:   res.InsertedID.(primitive.ObjectID),
-		ProductName: product.ProductName,
-		Description: product.Description,
-		ImageLink:   product.ImageLink,
-		Variant:     product.Variant,
+		ProductId:     res.InsertedID.(primitive.ObjectID),
+		ProductName:   product.ProductName,
+		Description:   product.Description,
+		ImageLink:     product.ImageLink,
+		ProductTypeID: product.ProductTypeID,
+		Variant:       product.Variant,
 	}
 	return &prod, nil
 }

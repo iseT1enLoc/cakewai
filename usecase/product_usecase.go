@@ -16,6 +16,31 @@ type productUsecase struct {
 	timeout    time.Duration
 }
 
+// CreateProductType implements domain.ProductTypeUsecase.
+func (p *productUsecase) CreateProductType(context context.Context) error {
+	panic("unimplemented")
+}
+
+// GetAllProductType implements domain.ProductTypeUsecase.
+func (p *productUsecase) GetAllProductType(context context.Context) ([]domain.ProductType, error) {
+	panic("unimplemented")
+}
+
+// GetProductTypeById implements domain.ProductTypeUsecase.
+func (p *productUsecase) GetProductTypeById(context context.Context, product_type_id int) (*domain.ProductType, error) {
+	panic("unimplemented")
+}
+
+// RemoveProductType implements domain.ProductTypeUsecase.
+func (p *productUsecase) RemoveProductType(context context.Context, product_type_id int) error {
+	panic("unimplemented")
+}
+
+// UpdateProductType implements domain.ProductTypeUsecase.
+func (p *productUsecase) UpdateProductType(context context.Context, updated_product_type domain.ProductType) (*domain.ProductType, error) {
+	panic("unimplemented")
+}
+
 // AddProductVariant implements domain.ProductRepository.
 func (p productUsecase) AddProductVariant(ctx context.Context, productId primitive.ObjectID, variant domain.ProductVariant) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
