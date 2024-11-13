@@ -2,8 +2,9 @@ package handlers
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
+	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
-	"cakewai/cakewai.com/internals/utils"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -20,8 +21,9 @@ type GoogleController struct {
 	Env           *appconfig.Env
 }
 
+// "http://localhost:8080/api/public/google/callback",
 var googleOauthConfig = &oauth2.Config{
-	RedirectURL: "http://localhost:8080/api/google/callback",
+	RedirectURL: "https://cakewai.onrender.com/api/public/google/callback",
 	Scopes: []string{
 		"https://www.googleapis.com/auth/userinfo.profile",
 		"https://www.googleapis.com/auth/userinfo.email",
@@ -31,60 +33,77 @@ var googleOauthConfig = &oauth2.Config{
 
 func (gc *GoogleController) HandleGoogleLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("Line 35")
 		// Generate OAuth state and set it in the cookie
 		oauthState := gc.GoogleUseCase.GenerateStateOauthCookie(c.Writer)
-
+		fmt.Println("Line 38")
 		// Set Google OAuth configuration
-		googleOauthConfig.ClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
-		googleOauthConfig.ClientID = os.Getenv("GOOGLE_CLIENT_ID")
+		googleOauthConfig.ClientSecret = gc.Env.GOOGLE_CLIENT_SECRET
+		googleOauthConfig.ClientID = gc.Env.GOOGLE_CLIENT_ID
 		// Generate the URL to redirect to
 		u := googleOauthConfig.AuthCodeURL(oauthState)
-
+		fmt.Println(u)
+		fmt.Println(":ine 44")
 		// Redirect using Gin's context
 		c.Redirect(http.StatusTemporaryRedirect, u)
 	}
 }
 func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		redirectURL := os.Getenv("redirect")
+		fmt.Println("Enter google callback handler")
 		googleOauthConfig.ClientSecret = gc.Env.GOOGLE_CLIENT_SECRET
 		googleOauthConfig.ClientID = gc.Env.GOOGLE_CLIENT_ID
 
 		// Get the oauth state cookie
 		oauthState, err := c.Cookie("oauthstate")
+		fmt.Printf("Enter line 55")
 		if err != nil {
 			// Handle error if cookie is not found
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 			return
 		}
-
+		fmt.Printf("Enter line 61")
 		// Validate the state
 		if c.Query("state") != oauthState {
 			// log.Error("invalid oauth google state")
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 			return
 		}
-
+		fmt.Printf("Enter line 68")
 		// Get user data from Google
 		data, err := gc.GoogleUseCase.GetUserDataFromGoogle(googleOauthConfig, c.Query("code"), oauthGoogleUrlAPI)
 		if err != nil {
 			log.Error(err)
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 			return
 		}
-
+		fmt.Printf("Enter line 76")
+		fmt.Println(data)
 		// Perform Google login
 		accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
 		if err != nil {
 			log.Error(err)
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 			return
 		}
-
+		// Create the response object
+		loginggresponse := domain.SignupResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}
+		fmt.Println("Enter line 87")
 		// Set cookies for access and refresh tokens
-		utils.SetCookie(c.Writer, "access_token", accessToken)
-		utils.SetCookie(c.Writer, "refresh_token", refreshToken)
-
+		//utils.SetCookie(c.Writer, "access_token", accessToken)
+		//utils.SetCookie(c.Writer, "refresh_token", refreshToken)
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully login with google",
+			},
+			Data: loginggresponse,
+		})
 		// Redirect to the profile page
-		c.Redirect(http.StatusTemporaryRedirect, "/")
+		//c.Redirect(http.StatusTemporaryRedirect, "/gg")
 	}
 }

@@ -6,10 +6,12 @@ import (
 	"cakewai/cakewai.com/domain"
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 	"cakewai/cakewai.com/repository"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"context"
 	"crypto/rand"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"io"
@@ -23,59 +25,66 @@ import (
 
 type googleUseCase struct {
 	userRepository repository.UserRepository
+	refresh_repo   repository.RefreshTokenRepository
 	contextTimeout time.Duration
 }
 
-func NewGoogleUseCase(userRepository repository.UserRepository, timeout time.Duration) domain.GoogleUseCase {
+func NewGoogleUseCase(userRepository repository.UserRepository, refreshTokenRepository repository.RefreshTokenRepository, timeout time.Duration) domain.GoogleUseCase {
 	return &googleUseCase{
 		userRepository: userRepository,
+		refresh_repo:   refreshTokenRepository,
 		contextTimeout: timeout,
 	}
 }
 
 func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
 	var googleUser *domain.GoogleUser
+	fmt.Println("Enter line 39 google login")
 	err = json.Unmarshal(data, &googleUser)
+	fmt.Println("Enter line 41 google login")
 	if err != nil {
 		log.Error(err)
 		return
 	}
-
+	fmt.Println("Enter line 46 google login")
 	user := &domain.User{
+		Id:             primitive.NewObjectID(),
 		GoogleId:       googleUser.Id,
 		ProfilePicture: googleUser.Picture,
 		Email:          googleUser.Email,
 		Name:           googleUser.Name,
+		CreatedAt:      time.Now().UTC(),
 	}
+
+	fmt.Println("Enter line 53 google login")
 
 	var existingUser *domain.User
 	existingUser, err = lu.userRepository.GetUserByEmail(ctx, googleUser.Email)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			user, err = lu.userRepository.CreateUser(ctx, user)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-		} else {
+		fmt.Println(err)
+
+		user, err = lu.userRepository.CreateUser(ctx, user)
+
+		fmt.Println("Enter line 61 google login")
+		fmt.Println(err)
+		if err != nil {
 			log.Error(err)
 			return
 		}
 	}
-
+	fmt.Println("Enter line 69 google login")
 	if existingUser != nil {
 		user = existingUser
 	}
 
-	// Create access token
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, int(env.ACCESS_TOK_EXP))
+	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return
 	}
+	uidstring := user.Id.Hex()
 
-	// Create refresh token
-	refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	refreshToken, err = lu.refresh_repo.InsertRefreshTokenToDB(ctx, uidstring, env)
 	if err != nil {
 		log.Error(err)
 		return

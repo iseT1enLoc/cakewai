@@ -6,7 +6,6 @@ import (
 	"time"
 
 	appconfig "cakewai/cakewai.com/component/appcfg"
-	apperror "cakewai/cakewai.com/component/apperr"
 	"cakewai/cakewai.com/domain"
 	tokenutil "cakewai/cakewai.com/internals/token_utils"
 
@@ -18,16 +17,34 @@ import (
 )
 
 type RefreshTokenRepository interface {
-	RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, err error)
+	RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, refresh_token string, err error)
 	RevokeToken(ctx context.Context, current_RT string, env *appconfig.Env) error
 	InsertRefreshTokenToDB(ctx context.Context, user_id string, env *appconfig.Env) (string, error)
 	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
 	UpdateRefreshTokenChanges(ctx context.Context, updatedRT domain.RefreshTokenRequest, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
+
+	// Method for cleanup of expired tokens
+	CleanupExpiredTokens(ctx context.Context) error
 }
 
 type refreshtokenRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// CleanupExpiredTokens implements RefreshTokenRepository.
+func (r *refreshtokenRepository) CleanupExpiredTokens(ctx context.Context) error {
+	collection := r.db.Collection(r.collection_name)
+
+	// Delete tokens that are expired
+	_, err := collection.DeleteMany(ctx, bson.M{
+		"expire_at": bson.M{"$lt": time.Now()},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete expired tokens: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateRefreshTokenChanges implements RefreshTokenRepository.
@@ -42,10 +59,10 @@ func (r *refreshtokenRepository) UpdateRefreshTokenChanges(ctx context.Context, 
 	// Use $set to specify which fields to update
 	update := bson.M{
 		"$set": bson.M{
-			"revoke_at":     time.Now().Local(),
-			"replace_token": updatedRT.RefreshToken,
-			"is_active":     false,
-			"is_expire":     true,
+			"revoke_at":      time.Now().Local(),
+			"replaced_token": updatedRT.RefreshToken,
+			"is_active":      false,
+			"is_expire":      true,
 		},
 	}
 
@@ -63,6 +80,7 @@ func (r *refreshtokenRepository) GetRefreshTokenFromDB(ctx context.Context, curr
 
 	var refreshToken domain.RefreshTokenRequest
 	err := collection.FindOne(ctx, bson.M{"refresh_token": current_refresh_token}).Decode(&refreshToken)
+
 	fmt.Println("This is line 48 refresh token")
 	if err != nil {
 		// If no document is found, handle it appropriately
@@ -72,32 +90,37 @@ func (r *refreshtokenRepository) GetRefreshTokenFromDB(ctx context.Context, curr
 		// For other errors, return as is
 		return nil, err
 	}
-
+	// if refreshToken.IsExpire || !refreshToken.IsActive {
+	// 	return nil, apperror.ErrInvalidToken
+	// }
 	fmt.Println(refreshToken)
-	if err != nil {
-		return nil, err
-	}
+
 	return &refreshToken, nil
 }
 
 // RefreshToken implements RefreshTokenRepository.
-func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, err error) {
+func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, refresh_token string, err error) {
 	//get current refresh token from database
-	refresh_token, err := r.GetRefreshTokenFromDB(ctx, current_RT, env)
-	if refresh_token.IsExpire || !refresh_token.IsActive {
-		return "", apperror.RefreshTokenInvalid
-	}
+	re_token, err := r.GetRefreshTokenFromDB(ctx, current_RT, env)
+
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
-	id, _ := primitive.ObjectIDFromHex(refresh_token.UserID)
+	refresh_token, err = r.InsertRefreshTokenToDB(ctx, re_token.UserID, env)
+	//update the old one
+	_, err = r.UpdateRefreshTokenChanges(ctx, *re_token, env)
+	if err != nil {
+		log.Error(err)
+		return "", "", err
+	}
+	id, _ := primitive.ObjectIDFromHex(re_token.RefreshToken)
 	token, err := tokenutil.CreateAccessToken(id, env.ACCESS_SECRET, int(time.Second)*300)
 
 	// if err != nil {
 	// 	return "", err
 	// }
-	return token, nil
+	return token, refresh_token, nil
 }
 
 // RevokeToken implements RefreshTokenRepository.
@@ -134,11 +157,14 @@ func (r *refreshtokenRepository) InsertRefreshTokenToDB(ctx context.Context, use
 		ID:           primitive.NewObjectID(),
 		RefreshToken: refresh_token,
 		UserID:       user_id,
-		ExpireAt:     time.Now().Add(300 * time.Second),
-		CreatedAt:    time.Now().Local(),
+		ExpireAt:     time.Now().UTC().Add(time.Minute * 5),
+		CreatedAt:    time.Now().UTC(),
 		IsActive:     true,
 		IsExpire:     false,
 	}
+	fmt.Printf("request expire is that %v", refreshtoken.ExpireAt)
+	fmt.Printf("Time now is that %v\n", time.Now())
+	fmt.Printf("Time expire is that %v\n", refreshtoken.ExpireAt.Local())
 	_, err = collection.InsertOne(ctx, refreshtoken)
 	fmt.Println("insert refresh token")
 	if err != nil {

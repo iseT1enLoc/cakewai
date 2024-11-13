@@ -9,12 +9,29 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
 type refreshTokenUsecase struct {
 	refreshTokenRepository repository.RefreshTokenRepository
 	contextTimeOut         time.Duration
+}
+
+// RenewAccessToken implements domain.RefreshTokenUseCase.
+func (r *refreshTokenUsecase) RenewAccessToken(ctx context.Context, refresh domain.RefreshTokenRequest, env *appconfig.Env) (access_token string, refresh_token string, err error) {
+	re_token, err := r.GetRefreshTokenFromDB(ctx, refresh.RefreshToken, env)
+	if err != nil {
+		log.Error(err)
+		return "", "", err
+	}
+
+	uid, _ := primitive.ObjectIDFromHex(re_token.UserID)
+	fmt.Printf("\nUserID of this app is that : %s\n", re_token.ID)
+	newacc, _ := tokenutil.CreateAccessToken(uid, env.ACCESS_SECRET, 1000)
+	return newacc, re_token.RefreshToken, nil
+
 }
 
 // GetRefreshTokenFromDB implements domain.RefreshTokenUseCase.
@@ -59,52 +76,25 @@ func (r *refreshTokenUsecase) UpdateRefreshTokenChanges(ctx context.Context, upd
 }
 
 // RefreshToken implements domain.RefreshTokenUseCase.
-func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, currentRT string, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
+func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
 	//FOCUS------------
-	_, errs := tokenutil.ExtractID(currentRT, env.REFRESH_SECRET)
+	_, errs := tokenutil.ExtractID(request.RefreshToken, env.REFRESH_SECRET)
 	if errs != nil {
 		fmt.Println("line 25 Oh my godness")
 		log.Error(err)
 
 		return
 	}
-	// fmt.Println(id)
-	// var user *domain.User
-	// //id = "672167f95b55a7c71f00f18a"
-	// fmt.Println("Enter line 30 refresh token usecase line 30")
-	// user, err = r.userRepository.GetUserById(ctx, id)
-
-	// fmt.Println("Enter line 31 refresh token usecase line 31")
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
-	// fmt.Println("Enter refresh token usecase line 35")
-	// accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
-	// fmt.Println("Enter refresh token usecase linen 41")
-	// refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
 
 	// return accessToken, refreshToken, nil
-	accesstoken, err := r.refreshTokenRepository.RefreshToken(ctx, currentRT, env)
+	accesstoken, refresh_token, err := r.refreshTokenRepository.RefreshToken(ctx, request.RefreshToken, env)
 	if err != nil {
 		log.Error(err)
 		return "", "", err
 	}
 	fmt.Println("line 101 happy happy")
-	// _, err = r.UpdateRefreshTokenChanges(ctx, *RT, env)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return "", "", err
-	// }
-	return accesstoken, currentRT, nil
+
+	return accesstoken, refresh_token, nil
 }
 
 func NewRefreshTokenUseCase(refreshTokenRepository repository.RefreshTokenRepository, timeout time.Duration) domain.RefreshTokenUseCase {

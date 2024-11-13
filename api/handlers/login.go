@@ -41,13 +41,19 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 			return
 		}
 		fmt.Print("line 34 login handler")
-		response := domain.LoginResponse{
+		loginresponse := domain.LoginResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}
 		// Set user ID in context
+		// Send the response
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusCreated,
+				Message: "Login Successfully",
+			},
+			Data: loginresponse,
+		})
 
-		fmt.Print("line 39 login handler")
-		c.JSON(http.StatusOK, response)
 	}
 }
