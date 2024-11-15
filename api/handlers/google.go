@@ -60,14 +60,14 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Printf("Enter line 55")
 		if err != nil {
 			// Handle error if cookie is not found
-			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
 		}
 		fmt.Printf("Enter line 61")
 		// Validate the state
 		if c.Query("state") != oauthState {
 			// log.Error("invalid oauth google state")
-			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
 		}
 		fmt.Printf("Enter line 68")
@@ -75,7 +75,7 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		data, err := gc.GoogleUseCase.GetUserDataFromGoogle(googleOauthConfig, c.Query("code"), oauthGoogleUrlAPI)
 		if err != nil {
 			log.Error(err)
-			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
 		}
 		fmt.Printf("Enter line 76")
@@ -84,14 +84,14 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
 		if err != nil {
 			log.Error(err)
-			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
 		}
 		// Create the response object
-		loginggresponse := domain.SignupResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-		}
+		// loginggresponse := domain.SignupResponse{
+		// 	AccessToken:  accessToken,
+		// 	RefreshToken: refreshToken,
+		// }
 		fmt.Println("Enter line 87")
 		// Set cookies for access and refresh tokens
 		//utils.SetCookie(c.Writer, "access_token", accessToken)
@@ -101,9 +101,13 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 				Code:    http.StatusOK,
 				Message: "Successfully login with google",
 			},
-			Data: loginggresponse,
+			Data: map[string]interface{}{
+				"access_token":  accessToken,
+				"refresh_token": refreshToken,
+				"redirect_url":  redirectURL,
+			},
 		})
 		// Redirect to the profile page
-		//c.Redirect(http.StatusTemporaryRedirect, "/gg")
+		//c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	}
 }
