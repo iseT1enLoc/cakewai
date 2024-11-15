@@ -2,7 +2,6 @@ package handlers
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
-	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
@@ -81,12 +80,12 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Printf("Enter line 76")
 		fmt.Println(data)
 		// Perform Google login
-		accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
-		if err != nil {
-			log.Error(err)
-			c.Redirect(http.StatusTemporaryRedirect, "/")
-			return
-		}
+		// accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
+		// if err != nil {
+		// 	log.Error(err)
+		// 	c.Redirect(http.StatusTemporaryRedirect, "/")
+		// 	return
+		// }
 		// Create the response object
 		// loginggresponse := domain.SignupResponse{
 		// 	AccessToken:  accessToken,
@@ -96,18 +95,18 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		// Set cookies for access and refresh tokens
 		//utils.SetCookie(c.Writer, "access_token", accessToken)
 		//utils.SetCookie(c.Writer, "refresh_token", refreshToken)
-		c.JSON(http.StatusOK, response.Success{
-			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusOK,
-				Message: "Successfully login with google",
-			},
-			Data: map[string]interface{}{
-				"access_token":  accessToken,
-				"refresh_token": refreshToken,
-				"redirect_url":  redirectURL,
-			},
-		})
+		// c.JSON(http.StatusOK, response.Success{
+		// 	ResponseFormat: response.ResponseFormat{
+		// 		Code:    http.StatusOK,
+		// 		Message: "Successfully login with google",
+		// 	},
+		// 	Data: map[string]interface{}{
+		// 		"access_token":  accessToken,
+		// 		"refresh_token": refreshToken,
+		// 		"redirect_url":  redirectURL,
+		// 	},
+		// })
 		// Redirect to the profile page
-		//c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	}
 }
