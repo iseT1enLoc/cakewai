@@ -77,7 +77,7 @@ func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appc
 		user = existingUser
 	}
 
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	accessToken, _, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return

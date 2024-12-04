@@ -15,39 +15,47 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, err error) {
-	//exp := time.Now().Add(time.Duration(expiry))
-	exp := time.Now().Add(time.Minute * 2)
-	claims := &domain.JwtCustomClaims{
+func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, claims domain.JwtCustomClaims, err error) {
+	// Set expiration time
+	exp := time.Now().UTC().Add(time.Minute * 2)
+
+	// Define claims with user ID and expiration
+	claims = domain.JwtCustomClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
 	}
+
+	// Create the JWT token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", claims, err
 	}
-	return t, nil
+
+	// Return the access token and claims
+	return t, claims, nil
 }
 
-func CreateRefreshToken(user_id primitive.ObjectID, secret string, expiry int) (refreshToken string, err error) {
+func CreateRefreshToken(user_id primitive.ObjectID, secret string, expiry int) (refreshToken string, refresh_token_claim domain.JwtCustomRefreshClaims, err error) {
 
 	exp := time.Now().UTC().Add(time.Minute * 60)
-	claimsRefresh := &domain.JwtCustomRefreshClaims{
+	fmt.Printf("\nCreate refreshtoken exp: %v\n", exp.Local().Format("Mon Jan 2 15:04:05 2006"))
+
+	refresh_token_claim = domain.JwtCustomRefreshClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
 	}
 	fmt.Printf("\nCreate refreshtoken exp: %v\n", exp)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refresh_token_claim)
 	rt, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", refresh_token_claim, err
 	}
-	return rt, nil
+	return rt, refresh_token_claim, nil
 }
 
 func Is_authorized(requestToken string, secretkey string) (bool, error) {

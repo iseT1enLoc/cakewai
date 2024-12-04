@@ -58,7 +58,7 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		return
 	}
 
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	accessToken, _, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return

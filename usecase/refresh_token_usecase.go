@@ -29,7 +29,7 @@ func (r *refreshTokenUsecase) RenewAccessToken(ctx context.Context, refresh doma
 
 	uid, _ := primitive.ObjectIDFromHex(re_token.UserID)
 	fmt.Printf("\nUserID of this app is that : %s\n", re_token.ID)
-	newacc, _ := tokenutil.CreateAccessToken(uid, env.ACCESS_SECRET, 1000)
+	newacc, _, _ := tokenutil.CreateAccessToken(uid, env.ACCESS_SECRET, 1000)
 	return newacc, re_token.RefreshToken, nil
 
 }

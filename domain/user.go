@@ -31,7 +31,7 @@ type UserResponse struct {
 	Phone          string             `json:"phone" bson:"phone"`
 	IsAdmin        bool               `json:"is_admin" bson:"is_admin"`
 	CreatedAt      time.Time          `json:"created_at" bson:"createdAt"`
-	RoleID         string             `json:"role_id" bson:"role_id"`
+	RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
 }
 
 type UserUseCase interface {
