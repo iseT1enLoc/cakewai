@@ -5,7 +5,6 @@ import (
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -22,7 +21,7 @@ type GoogleController struct {
 
 // "http://localhost:8080/api/public/google/callback",
 var googleOauthConfig = &oauth2.Config{
-	RedirectURL: "https://cakewai.onrender.com/api/public/google/callback",
+	RedirectURL: "http://localhost:8080/api/public/google/callback",
 	Scopes: []string{
 		"https://www.googleapis.com/auth/userinfo.profile",
 		"https://www.googleapis.com/auth/userinfo.email",
@@ -49,7 +48,7 @@ func (gc *GoogleController) HandleGoogleLogin() gin.HandlerFunc {
 }
 func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		redirectURL := os.Getenv("redirect")
+		//redirectURL := os.Getenv("redirect")
 		fmt.Println("Enter google callback handler")
 		googleOauthConfig.ClientSecret = gc.Env.GOOGLE_CLIENT_SECRET
 		googleOauthConfig.ClientID = gc.Env.GOOGLE_CLIENT_ID
@@ -80,12 +79,13 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Printf("Enter line 76")
 		fmt.Println(data)
 		// Perform Google login
-		// accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
-		// if err != nil {
-		// 	log.Error(err)
-		// 	c.Redirect(http.StatusTemporaryRedirect, "/")
-		// 	return
-		// }
+
+		accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
+		if err != nil {
+			log.Error(err)
+			c.Redirect(http.StatusTemporaryRedirect, "/")
+			return
+		}
 		// Create the response object
 		// loginggresponse := domain.SignupResponse{
 		// 	AccessToken:  accessToken,
@@ -93,20 +93,24 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		// }
 		fmt.Println("Enter line 87")
 		// Set cookies for access and refresh tokens
-		//utils.SetCookie(c.Writer, "access_token", accessToken)
-		//utils.SetCookie(c.Writer, "refresh_token", refreshToken)
+
+		//utils.SetCookie(c.Writer, "access_token", accessToken,false)
+		//utils.SetCookie(c.Writer, "refresh_token", refreshToken,true)
+
 		// c.JSON(http.StatusOK, response.Success{
 		// 	ResponseFormat: response.ResponseFormat{
 		// 		Code:    http.StatusOK,
 		// 		Message: "Successfully login with google",
 		// 	},
-		// 	Data: map[string]interface{}{
-		// 		"access_token":  accessToken,
-		// 		"refresh_token": refreshToken,
-		// 		"redirect_url":  redirectURL,
-		// 	},
+
+		// 	Data:loginggresponse,
 		// })
+		//redirectURL := "http://localhost:5173/home?token=" + loginggresponse.AccessToken + "&user=" + loginggresponse.User
 		// Redirect to the profile page
-		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		fmt.Print("redirect")
+		//redirectURL := "http://localhost:5173/home?accesstoken=" + accessToken + "refrestoken=" + refreshToken
+		//redirectURL := "http://localhost:5173/home"
+		c.Redirect(http.StatusPermanentRedirect,"http://localhost:5173/?token="+accessToken+"&refreshToken="+refreshToken)
+
 	}
 }

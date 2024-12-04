@@ -30,11 +30,12 @@ func MigrateDB(db *sqlx.DB) {
 	`)
 }
 
-func SetCookie(w http.ResponseWriter, name string, value string) {
+func SetCookie(w http.ResponseWriter, name string, value string,isonly bool) {
 	cookie := http.Cookie{
 		Name:  name,
 		Value: value,
 		Path:  "/",
+		HttpOnly:isonly,
 	}
 	http.SetCookie(w, &cookie)
 }
