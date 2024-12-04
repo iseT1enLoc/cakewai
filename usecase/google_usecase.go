@@ -49,8 +49,8 @@ func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appc
 	fmt.Println("Enter line 46 google login")
 	user := &domain.User{
 		Id:             primitive.NewObjectID(),
-		GoogleId:       googleUser.Id,
-		ProfilePicture: googleUser.Picture,
+		GoogleId:       &googleUser.Id,
+		ProfilePicture: &googleUser.Picture,
 		Email:          googleUser.Email,
 		Name:           googleUser.Name,
 		CreatedAt:      time.Now().UTC(),

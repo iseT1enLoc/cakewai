@@ -31,7 +31,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 		return
 	}
 
-	if user.GoogleId != "" {
+	if user.GoogleId != nil {
 		log.Error(err)
 		err = apperror.ErrUserShouldLoginWithGoogle
 		return

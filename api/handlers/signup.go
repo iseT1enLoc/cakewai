@@ -22,40 +22,58 @@ type SignupController struct {
 
 func (sc *SignupController) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, cancel := context.WithTimeout(c, time.Second*time.Duration(c.GetFloat64(sc.Env.TIMEOUT)))
+		// Context timeout handling
+		ctx, cancel := context.WithTimeout(c, time.Second*5)
 		defer cancel()
-		var request domain.SignupRequest
+
 		// Decode the JSON request body
+		var request domain.SignupRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Can not parsing the request",
+				Message: "Cannot parse the request body",
 				Error:   err.Error(),
 			})
 			return
 		}
+
+		// Set default role if it's empty
 		if request.RoleName == "" {
 			request.RoleName = "customer"
 		}
+
 		// Call the signup use case
-		accessToken, refreshToken, uid, err := sc.SignupUseCase.SignUp(c, request, sc.Env)
+		accessToken, refreshToken, uid, err := sc.SignupUseCase.SignUp(ctx, request, sc.Env)
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Email is already existed",
+				Message: "Email already exists",
 				Error:   err.Error(),
 			})
 			return
 		}
+
 		// Create the response object
 		signupResponse := domain.SignupResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}
-		hexid, _ := primitive.ObjectIDFromHex(uid)
-		err = sc.CartUseCase.CreateCartByUserId(c, hexid)
+
+		// Convert the user ID from string to ObjectID and create an empty cart for the user
+		hexid, err := primitive.ObjectIDFromHex(uid)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid user ID",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		err = sc.CartUseCase.CreateCartByUserId(ctx, hexid)
 		if err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -65,11 +83,12 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 			})
 			return
 		}
-		// Send the response
+
+		// Send the success response
 		c.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusCreated,
-				Message: "Register successfully",
+				Message: "Registered successfully",
 			},
 			Data: signupResponse,
 		})
