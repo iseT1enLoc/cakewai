@@ -79,6 +79,7 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Printf("Enter line 76")
 		fmt.Println(data)
 		// Perform Google login
+
 		accessToken, refreshToken, err := gc.GoogleUseCase.GoogleLogin(c.Request.Context(), data, gc.Env)
 		if err != nil {
 			log.Error(err)
@@ -92,13 +93,16 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		// }
 		fmt.Println("Enter line 87")
 		// Set cookies for access and refresh tokens
+
 		//utils.SetCookie(c.Writer, "access_token", accessToken,false)
 		//utils.SetCookie(c.Writer, "refresh_token", refreshToken,true)
+
 		// c.JSON(http.StatusOK, response.Success{
 		// 	ResponseFormat: response.ResponseFormat{
 		// 		Code:    http.StatusOK,
 		// 		Message: "Successfully login with google",
 		// 	},
+
 		// 	Data:loginggresponse,
 		// })
 		//redirectURL := "http://localhost:5173/home?token=" + loginggresponse.AccessToken + "&user=" + loginggresponse.User
@@ -107,5 +111,6 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		//redirectURL := "http://localhost:5173/home?accesstoken=" + accessToken + "refrestoken=" + refreshToken
 		//redirectURL := "http://localhost:5173/home"
 		c.Redirect(http.StatusPermanentRedirect,"http://localhost:5173/?token="+accessToken+"&refreshToken="+refreshToken)
+
 	}
 }
