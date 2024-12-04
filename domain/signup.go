@@ -6,10 +6,11 @@ import (
 )
 
 type SignupRequest struct {
-	Name     string `form:"name" binding:"required"`
-	Email    string `form:"email" binding:"required,email"`
-	Password string `form:"password" binding:"required"`
-	RoleID   string `form:"role_id" bson:"role_id"`
+	Name     string `form:"name" binding:"required" json:"name"`
+	Email    string `form:"email" binding:"required,email" json:"email"`
+	Password string `form:"password" binding:"required" json:"password"`
+	RoleName string `form:"role_name" bson:"role_name,omitempty" json:"role_name,omitempty"`
+	RoleID   string `form:"role_id" bson:"role_id,omitempty" json:"role_id,omitempty"`
 }
 
 type SignupResponse struct {

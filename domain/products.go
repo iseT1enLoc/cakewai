@@ -53,4 +53,7 @@ type ProductUsecase interface {
 
 	// Delete a product variant
 	DeleteProductVariant(ctx context.Context, productId primitive.ObjectID, variant_name string) (int64, error)
+
+	//Search cake
+	SearchProducts(ctx context.Context, query string, type_id string, variant string) ([]*Product, error)
 }

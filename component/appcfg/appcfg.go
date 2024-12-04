@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 func LoadEnv() (*Env, error) {
-	// err := godotenv.Load()
+	err := godotenv.Load()
 
-	// if err != nil {
-	// 	fmt.Errorf("Could not load .env %v", err)
-	// 	return nil, err
-	// }
+	if err != nil {
+		fmt.Errorf("Could not load .env %v", err)
+		return nil, err
+	}
 
 	acc_time := os.Getenv("ACCESS_TOK_EXP")
 	re_time := os.Getenv("REFRESH_TOK_EXP")

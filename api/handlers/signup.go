@@ -35,7 +35,9 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 			})
 			return
 		}
-
+		if request.RoleName == "" {
+			request.RoleName = "customer"
+		}
 		// Call the signup use case
 		accessToken, refreshToken, uid, err := sc.SignupUseCase.SignUp(c, request, sc.Env)
 		if err != nil {

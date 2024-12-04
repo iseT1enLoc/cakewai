@@ -5,7 +5,6 @@ import (
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -22,7 +21,7 @@ type GoogleController struct {
 
 // "http://localhost:8080/api/public/google/callback",
 var googleOauthConfig = &oauth2.Config{
-	RedirectURL: "https://cakewai.onrender.com/api/public/google/callback",
+	RedirectURL: "http://localhost:8080/api/public/google/callback",
 	Scopes: []string{
 		"https://www.googleapis.com/auth/userinfo.profile",
 		"https://www.googleapis.com/auth/userinfo.email",
@@ -49,7 +48,7 @@ func (gc *GoogleController) HandleGoogleLogin() gin.HandlerFunc {
 }
 func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		redirectURL := os.Getenv("redirect")
+		//redirectURL := os.Getenv("redirect")
 		fmt.Println("Enter google callback handler")
 		googleOauthConfig.ClientSecret = gc.Env.GOOGLE_CLIENT_SECRET
 		googleOauthConfig.ClientID = gc.Env.GOOGLE_CLIENT_ID
@@ -107,6 +106,7 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		// 	},
 		// })
 		// Redirect to the profile page
-		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		//redirectURL = redirectURL + "accesstoken"
+		c.Redirect(http.StatusTemporaryRedirect, "https://www.youtube.com/watch?v=veBxkNHXlxE&list=PLgUOabhQoh5YuTBUd-xg3_EFETKlGVMSC&index=3")
 	}
 }

@@ -22,6 +22,6 @@ func NewGoogleRouter(env *appconfig.Env, timeout time.Duration, db *mongo.Databa
 	}
 
 	r.GET("/google/login", gc.HandleGoogleLogin())
-	r.GET("/google/callback", middlewares.TraceMiddleware("profle"), gc.HandleGoogleCallback())
+	r.GET("/google/callback", middlewares.TraceMiddleware("profile"), gc.HandleGoogleCallback())
 
 }
