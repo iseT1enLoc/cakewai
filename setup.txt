@@ -6,3 +6,4 @@ usermongodb: locnvt
 matkhau mongodb:7kdXRVISqRXH5brz
 #postgresql://neondb_owner:ul67roEmhTgp@ep-holy-forest-a5co8pxu.us-east-2.aws.neon.tech/neondb?sslmode=require
 DATABASE_URL=mongodb+srv://locnvtit:Wu3SVHCyZNBms0G3@cakewai.auh9m.mongodb.net/?retryWrites=true&w=majority&appName=cakewai
+mongodb://localhost:27017/

@@ -40,3 +40,5 @@ func main() {
 	//r.Run("localhost:8080")
 	r.Run()
 }
+//mongodb+srv://hoaibao123456:9DQ18WlqmeoF9f7u@cakewai.auh9m.mongodb.net/?retryWrites=true&w=majority&appName=cakewai
+
