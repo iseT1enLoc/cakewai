@@ -32,4 +32,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	r.GET("/gg", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
+	r.GET("/admin", middlewares.JwtAuthMiddleware(env.ACCESS_SECRET), middlewares.AdminMiddleware(), func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
+	})
 }

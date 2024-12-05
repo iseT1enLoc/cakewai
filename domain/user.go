@@ -9,27 +9,29 @@ import (
 
 type User struct {
 	Id             primitive.ObjectID `json:"id" bson:"_id"`
-	GoogleId       string             `json:"google_id" bson:"google_id"`
-	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	GoogleId       *string            `json:"google_id" bson:"google_id"`
+	ProfilePicture *string            `json:"profile_picture" bson:"profile_picture"`
 	Name           string             `json:"name" bson:"name"`
 	Password       string             `json:"password" bson:"password"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
 	Address        Address            `json:"address" bson:"address"`
 	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at" bson:"updated_at"`
-	RoleID         string             `json:"role_id" bson:"role_id"`
+	UpdatedAt      *time.Time         `json:"updated_at" bson:"updated_at"`
+	IsAdmin        bool               `json:"is_admin,omitempty" bson:"is_admin,omitempty"  default:"false"`
+	RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
 }
 
 type UserResponse struct {
 	Id             primitive.ObjectID `json:"id" bson:"_id"`
-	GoogleId       string             `json:"google_id" bson:"google_id"`
-	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	GoogleId       *string            `json:"google_id" bson:"google_id"`
+	ProfilePicture *string            `json:"profile_picture" bson:"profile_picture"`
 	Name           string             `json:"name" bson:"name"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
+	IsAdmin        bool               `json:"is_admin" bson:"is_admin"`
 	CreatedAt      time.Time          `json:"created_at" bson:"createdAt"`
-	RoleID         string             `json:"role_id" bson:"role_id"`
+	RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
 }
 
 type UserUseCase interface {

@@ -18,9 +18,9 @@ func NewCartRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Database, 
 		Env:         Env,
 	}
 	//r.GET("/cart/:user_id", cart_handler.CreateCartByUserId())//DONE
-	r.POST("/cart/additem", cart_handler.AddCartItemIntoCart())    //DONE
-	r.GET("/cart/items", cart_handler.GetAllItemsInCartByUserID()) //DONE
-	r.GET("/cart/", cart_handler.GetCartByUserID())                //DONE
-	r.PUT("/cart/item", cart_handler.RemoveItemFromCart())         //DONE
+	r.POST("/cart/additem", cart_handler.AddCartItemIntoCart())
+	r.GET("/cart/items", cart_handler.GetAllItemsInCartByUserID())
+	r.GET("/cart/", cart_handler.GetCartByUserID())
+	r.PUT("/cart/item", cart_handler.RemoveItemFromCart())
 	r.PUT("/cart/update_cart", cart_handler.UpdateCartItemByID())
 }

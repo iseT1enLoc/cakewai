@@ -110,7 +110,7 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Print("redirect")
 		//redirectURL := "http://localhost:5173/home?accesstoken=" + accessToken + "refrestoken=" + refreshToken
 		//redirectURL := "http://localhost:5173/home"
-		c.Redirect(http.StatusPermanentRedirect,"http://localhost:5173/?token="+accessToken+"&refreshToken="+refreshToken)
+		c.Redirect(http.StatusPermanentRedirect, "http://localhost:5173/?token="+accessToken+"&refreshToken="+refreshToken)
 
 	}
 }

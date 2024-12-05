@@ -31,7 +31,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 		return
 	}
 
-	if user.GoogleId != "" {
+	if user.GoogleId != nil {
 		log.Error(err)
 		err = apperror.ErrUserShouldLoginWithGoogle
 		return
@@ -46,7 +46,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 		return
 	}
 	fmt.Print("line 43 login usecase")
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, time.Now().Second()*3600)
+	accessToken, _, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, user.IsAdmin, time.Now().Second()*3600)
 	fmt.Printf("\n Create Access token %s\n", env.ACCESS_SECRET)
 	if err != nil {
 		log.Error(err)
@@ -55,8 +55,9 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 	fmt.Println("Token id from line 55")
 	//refreshToken, err = tokenutil.CreateRefreshToken(user.Id, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 
-	refreshtoken, err := l.refreshTokenrepo.InsertRefreshTokenToDB(ctx, user.Id.Hex(), env)
+	refreshtoken, err := l.refreshTokenrepo.InsertRefreshTokenToDB(ctx, user.Id.Hex(), user.IsAdmin, env)
 	fmt.Println("line 59 vui ve vui ve")
+	fmt.Println(user.IsAdmin)
 	if err != nil {
 		log.Error(err)
 		return

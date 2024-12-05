@@ -372,3 +372,28 @@ func (pc *ProductHandler) GetProductByProductTypeID() gin.HandlerFunc {
 		})
 	}
 }
+
+func (pc *ProductHandler) SearchProducts() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		query := ctx.Query("query")
+		typeID := ctx.Query("type_id")           // Filter by ProductTypeID
+		variantName := ctx.Query("variant_name") // Filter by Variant Name
+
+		products, err := pc.ProductUsecase.SearchProducts(ctx, query, typeID, variantName)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while getting desired products",
+				Error:   err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "List of results",
+			},
+			Data: products,
+		})
+	}
+}

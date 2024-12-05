@@ -9,6 +9,7 @@ type JwtCustomClaims struct {
 	ID       string `json:"_id"`
 	Email    string `json:"email"`
 	GoogleId string `json:"google_id"`
+	IsAdmin  bool   `json:"is_admin"`
 	jwt.RegisteredClaims
 }
 
@@ -17,5 +18,6 @@ type JwtCustomRefreshClaims struct {
 	ID       string `json:"_id"`
 	Email    string `json:"email"`
 	GoogleId string `json:"google_id"`
+	IsAdmin  bool   `json:"is_admin"`
 	jwt.RegisteredClaims
 }

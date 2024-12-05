@@ -42,10 +42,60 @@ type ProductRepository interface {
 
 	// Delete a product variant
 	DeleteProductVariant(ctx context.Context, productId primitive.ObjectID, variant_feature_name string) (int64, error)
+
+	//Search product
+	SearchProduct(ctx context.Context, query string, type_id string, variant string) ([]*domain.Product, error)
 }
 type productRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// SearchProduct implements ProductRepository.
+func (p *productRepository) SearchProduct(ctx context.Context, query string, type_id string, variant string) ([]*domain.Product, error) {
+	collection := p.db.Collection(p.collection_name)
+
+	// Build MongoDB filter
+	filter := bson.M{}
+
+	// General text search on product name and description
+	if query != "" {
+		filter["$or"] = []bson.M{
+			{"product_name": bson.M{"$regex": query, "$options": "i"}},
+			{"description": bson.M{"$regex": query, "$options": "i"}},
+		}
+	}
+
+	// Filter by product type ID
+	if type_id != "" {
+		filter["product_type_id"] = type_id
+	}
+
+	// Filter by variant name
+	if variant != "" {
+		filter["product_variant.variant_features"] = bson.M{"$regex": variant, "$options": "i"}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Perform the query
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		err := errors.New("Error searching products")
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results
+	var products []*domain.Product
+	if err = cursor.All(ctx, &products); err != nil {
+		err := errors.New("Error decoding search results")
+
+		return nil, err
+	}
+	return products, nil
+
 }
 
 // GetProductByProductTypeID implements ProductRepository.

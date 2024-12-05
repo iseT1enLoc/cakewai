@@ -16,6 +16,16 @@ type productUsecase struct {
 	timeout    time.Duration
 }
 
+// SearchProducts implements domain.ProductUsecase.
+func (p *productUsecase) SearchProducts(ctx context.Context, query string, type_id string, variant string) ([]*domain.Product, error) {
+	products, err := p.repository.SearchProduct(ctx, query, type_id, variant)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return products, nil
+}
+
 // GetProductByProductTypeID implements domain.ProductUsecase.
 func (p *productUsecase) GetProductByProductTypeID(ctx context.Context, id string) ([]*domain.Product, error) {
 	products, err := p.repository.GetProductByProductTypeID(ctx, id)
