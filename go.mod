@@ -6,6 +6,7 @@ require (
 	github.com/cloudinary/cloudinary-go v1.7.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-faster/errors v0.7.1
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1

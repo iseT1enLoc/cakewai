@@ -15,9 +15,9 @@ import (
 )
 
 type RefreshTokenRepository interface {
-	RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, refresh_token string, err error)
+	RefreshToken(ctx context.Context, current_RT string, is_admin bool, env *appconfig.Env) (accesstoken string, refresh_token string, err error)
 	RevokeToken(ctx context.Context, current_RT string, env *appconfig.Env) error
-	InsertRefreshTokenToDB(ctx context.Context, user_id string, env *appconfig.Env) (string, error)
+	InsertRefreshTokenToDB(ctx context.Context, user_id string, is_admin bool, env *appconfig.Env) (string, error)
 	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
 	UpdateRefreshTokenChanges(ctx context.Context, updatedRT domain.RefreshTokenRequest, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
 
@@ -126,7 +126,7 @@ func (r *refreshtokenRepository) GetRefreshTokenFromDB(ctx context.Context, curr
 }
 
 // RefreshToken implements RefreshTokenRepository.
-func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT string, env *appconfig.Env) (accesstoken string, refresh_token string, err error) {
+func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT string, is_admin bool, env *appconfig.Env) (accesstoken string, refresh_token string, err error) {
 	// Set a timeout for the refresh token process
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
@@ -139,7 +139,7 @@ func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT st
 	}
 
 	// Generate a new refresh token
-	refresh_token, err = r.InsertRefreshTokenToDB(ctx, re_token.UserID, env)
+	refresh_token, err = r.InsertRefreshTokenToDB(ctx, re_token.UserID, is_admin, env)
 	if err != nil {
 		log.Printf("Error inserting new refresh token into DB: %v", err)
 		return "", "", fmt.Errorf("failed to insert new refresh token: %w", err)
@@ -160,7 +160,7 @@ func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT st
 	}
 
 	// Generate the access token
-	token, _, err := tokenutil.CreateAccessToken(id, env.ACCESS_SECRET, int(time.Second)*300)
+	token, _, err := tokenutil.CreateAccessToken(id, env.ACCESS_SECRET, false, int(time.Second)*300)
 	if err != nil {
 		log.Printf("Error creating access token: %v", err)
 		return "", "", fmt.Errorf("failed to create access token: %w", err)
@@ -203,7 +203,7 @@ func (r *refreshtokenRepository) RevokeToken(ctx context.Context, current_RT str
 }
 
 // SaveRefreshTokenToDB implements RefreshTokenRepository.
-func (r *refreshtokenRepository) InsertRefreshTokenToDB(ctx context.Context, userID string, env *appconfig.Env) (string, error) {
+func (r *refreshtokenRepository) InsertRefreshTokenToDB(ctx context.Context, userID string, is_admin bool, env *appconfig.Env) (string, error) {
 	// Log function entry with userID
 	log.Printf("Entering InsertRefreshTokenToDB for userID: %v", userID)
 
@@ -216,7 +216,7 @@ func (r *refreshtokenRepository) InsertRefreshTokenToDB(ctx context.Context, use
 	}
 
 	// Generate the refresh token
-	refreshToken, refresh_token_claims, err := tokenutil.CreateRefreshToken(oid, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
+	refreshToken, refresh_token_claims, err := tokenutil.CreateRefreshToken(oid, is_admin, env.REFRESH_SECRET, env.REFRESH_TOK_EXP)
 	if err != nil {
 		log.Printf("Error creating refresh token: %v", err)
 		return "", fmt.Errorf("failed to create refresh token: %w", err)

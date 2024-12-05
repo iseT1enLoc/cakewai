@@ -38,11 +38,6 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 			return
 		}
 
-		// Set default role if it's empty
-		if request.RoleName == "" {
-			request.RoleName = "customer"
-		}
-
 		// Call the signup use case
 		accessToken, refreshToken, uid, err := sc.SignupUseCase.SignUp(ctx, request, sc.Env)
 		if err != nil {
