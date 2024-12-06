@@ -43,6 +43,6 @@ func NewRefreshTokenRoute(env *appconfig.Env, timeout time.Duration, db *mongo.D
 	}
 	// Start cleanup task in the background
 	go StartTokenCleanupTask(context.Background(), repo)
-	r.GET("/refreshtoken", sc.RefreshTokenHandler())
+	r.POST("/refreshtoken", sc.RefreshTokenHandler())
 	r.PUT("/revoke_token", sc.RevokeRefreshTokenHandler())
 }
