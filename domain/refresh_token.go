@@ -46,4 +46,5 @@ type RefreshTokenUseCase interface {
 	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*RefreshTokenRequest, error)
 	UpdateRefreshTokenChanges(ctx context.Context, updatedRT RefreshTokenRequest, env *appconfig.Env) (*RefreshTokenRequest, error)
 	RenewAccessToken(ctx context.Context, refresh RefreshTokenRequest, env *appconfig.Env) (access_token string, refresh_token string, err error)
+	DeleteRefreshtoken(ctx context.Context, current_RT string, env *appconfig.Env) error
 }
