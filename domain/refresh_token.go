@@ -38,7 +38,9 @@ type RefreshShortResponse struct {
 	RefreshToken string `json:"refresh_token" bson:"refresh_token"`
 }
 type RefreshTokenUseCase interface {
+	//renew access token
 	RefreshToken(ctx context.Context, request RefreshTokenRequest, is_admin bool, env *appconfig.Env) (accessToken string, refreshToken string, err error)
+	//thu hoi refresh token
 	RevokeToken(ctx context.Context, current_RT string, env *appconfig.Env) error
 	InsertRefreshTokenToDB(ctx context.Context, refresh_token RefreshTokenRequest, user_id string, is_admin bool, env *appconfig.Env) (string, error)
 	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*RefreshTokenRequest, error)
