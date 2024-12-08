@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
 type CartHandler struct {
@@ -19,37 +18,6 @@ type CartHandler struct {
 	Env         *appconfig.Env
 }
 
-func (ch *CartHandler) CreateCartByUserId() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		user_id := ctx.Param("id")
-		objId, err := primitive.ObjectIDFromHex(user_id)
-		if err != nil {
-			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "invalid user param",
-				Error:   err.Error(),
-			})
-		}
-		err = ch.CartUseCase.CreateCartByUserId(ctx, objId)
-		if err != nil {
-			log.Error(err)
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error happened while insert cart into database",
-				Error:   err.Error(),
-			})
-		}
-		ctx.JSON(http.StatusCreated, response.Success{
-			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusCreated,
-				Message: "Successfully create empty cart",
-			},
-			Data: nil,
-		})
-
-	}
-}
 func (ch *CartHandler) GetAllItemsInCartByUserID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID, exists := ctx.Get("user_id")
@@ -118,10 +86,10 @@ func (ch *CartHandler) GetCartByUserID() gin.HandlerFunc {
 				Error:   err.Error(),
 			})
 		}
-		ctx.JSON(http.StatusCreated, response.Success{
+		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusCreated,
-				Message: "Successfully create empty cart",
+				Message: "Successfully get cart by user id",
 			},
 			Data: cart,
 		})
@@ -131,107 +99,174 @@ func (ch *CartHandler) GetCartByUserID() gin.HandlerFunc {
 // http://localhost:8080/api/v1/items?category=books&price_min=10&price_max=50
 func (ch *CartHandler) RemoveItemFromCart() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		cart_id, _ := ctx.GetQuery("card_id")
-		productID, _ := ctx.GetQuery("product_id")
-		variant, _ := ctx.GetQuery("variant")
-		if productID == "" || variant == "" || cart_id == "" {
-			fmt.Printf("\nPRODUCT ID: %s\n", productID)
-			fmt.Printf("CARD ID: %s\n", productID)
-			fmt.Printf("VARIANT: %s\n", variant)
+		// Extract query parameters
+
+		productID := ctx.Query("product_id")
+		variant := ctx.Query("variant")
+
+		// Validate required parameters
+		if productID == "" || variant == "" {
+			fmt.Printf("Missing parameters: product_id=%s, variant=%s", productID, variant)
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "cart id, productid or variant is empty",
-				Error:   errors.New("productID and variant is empty").Error(),
+				Message: "Missing required parameters: product_id, or variant",
+				Error:   "product_id, and variant must not be empty",
 			})
 			return
 		}
-		cartid_hex, err1 := primitive.ObjectIDFromHex(cart_id)
-		productid_hex, err2 := primitive.ObjectIDFromHex(productID)
-		if err1 != nil || err2 != nil {
+
+		userID, exists := ctx.Get("user_id")
+		fmt.Printf("User id is that %v", userID)
+		if !exists {
+			fmt.Print("User ID not found in context")
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "CartID or product id is invalid",
-				Error:   err1.Error() + err2.Error(),
+				Message: "invalid user param",
+				Error:   errors.New("Can not find user id in context").Error(),
 			})
 			return
 		}
-		err := ch.CartUseCase.RemoveItemFromCart(ctx, cartid_hex, productid_hex, variant)
+		objhex, err := primitive.ObjectIDFromHex(userID.(string))
+
+		productIDHex, err := primitive.ObjectIDFromHex(productID)
 		if err != nil {
+			fmt.Printf("Invalid product_id: %s", productID)
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Error while removing data from cart",
+				Message: "Invalid product_id",
 				Error:   err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusCreated, response.Success{
+
+		// Call the use case to remove the item from the cart
+		err = ch.CartUseCase.RemoveItemFromCart(ctx.Request.Context(), objhex, productIDHex, variant)
+		if err != nil {
+			fmt.Printf("Error removing item from cart: %v", err)
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Failed to remove item from cart",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		// Respond with success
+		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusCreated,
-				Message: "Successfully remove item from cart",
+				Code:    http.StatusOK,
+				Message: "Successfully removed item from cart",
 			},
 			Data: nil,
 		})
 	}
 }
+
 func (ch *CartHandler) AddCartItemIntoCart() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// Bind the incoming JSON request body to the CartItem struct
 		var item domain.CartItem
 		if err := ctx.ShouldBindJSON(&item); err != nil {
+			fmt.Printf("Error parsing item: %v", err)
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Can not parsing item",
+				Message: "Invalid input data, unable to parse cart item",
 				Error:   err.Error(),
 			})
 			return
 		}
-		fmt.Print(item)
-		hexid, _ := primitive.ObjectIDFromHex("672c177940cd12447f01ee81")
-		item_id, err := ch.CartUseCase.AddCartItemIntoCart(ctx, hexid, item)
+
+		// Check if mandatory fields are provided
+		if item.ProductId.IsZero() || item.Variant == "" || item.Price <= 0 || item.BuyQuantity <= 0 {
+			fmt.Printf("Invalid cart item data: %+v", item)
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Missing required fields in cart item",
+				Error:   "ProductId, variant, price, and buyQuantity must be valid",
+			})
+			return
+		}
+
+		userID, exists := ctx.Get("user_id")
+		fmt.Printf("User id is that %v", userID)
+		if !exists {
+			fmt.Print("User ID not found in context")
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid user param",
+				Error:   errors.New("Can not find user id in context").Error(),
+			})
+			return
+		}
+		objhex, err := primitive.ObjectIDFromHex(userID.(string))
+		// Call the use case to add the cart item
+		cart_item, err := ch.CartUseCase.AddCartItemIntoCart(ctx, objhex, item)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error happened while adding item into cart",
+			fmt.Printf("Error adding item to cart: %v", err)
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error while adding item into cart",
 				Error:   err.Error(),
 			})
 			return
 		}
+
+		// Successful response
 		ctx.JSON(http.StatusCreated, response.Success{
 			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusCreated,
-				Message: "Successfully adding item into cart",
+				Code:    http.StatusOK,
+				Message: "Successfully added item to cart",
 			},
-			Data: item_id,
+			Data: cart_item,
 		})
 	}
 }
+
 func (ch *CartHandler) UpdateCartItemByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var updated_item domain.CartItem
-		if err := ctx.ShouldBindJSON(&updated_item); err != nil {
+		// Parse the updated cart item from the request body
+		var updatedItem domain.CartItem
+		if err := ctx.ShouldBindJSON(&updatedItem); err != nil {
+			fmt.Printf("Error parsing updated item: %v", err)
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Can not parsing item",
+				Message: "Invalid input data, unable to parse cart item",
 				Error:   err.Error(),
 			})
 			return
 		}
-		card_id, _ := ctx.GetQuery("card_id")
-		hex_card_id, _ := primitive.ObjectIDFromHex(card_id)
-		updatedItem, err := ch.CartUseCase.UpdateCartItemByID(ctx, hex_card_id, updated_item)
+
+		userID, exists := ctx.Get("user_id")
+		fmt.Printf("User id is that %v", userID)
+		if !exists {
+			fmt.Print("User ID not found in context")
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "invalid user param",
+				Error:   errors.New("Can not find user id in context").Error(),
+			})
+			return
+		}
+		objhex, err := primitive.ObjectIDFromHex(userID.(string))
+		// Call the use case to update the cart item
+		updatedItemResponse, err := ch.CartUseCase.UpdateAnCartItemByUserID(ctx, objhex, updatedItem)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error happened while updating item into cart",
+			fmt.Printf("Error updating cart item: %v", err)
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error updating item in the cart",
 				Error:   err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusCreated, response.Success{
+
+		// Return the updated item in the response
+		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusCreated,
-				Message: "Successfully update item in cart",
+				Code:    http.StatusOK,
+				Message: "Successfully updated item in cart",
 			},
-			Data: updatedItem,
+			Data: updatedItemResponse,
 		})
 	}
 }

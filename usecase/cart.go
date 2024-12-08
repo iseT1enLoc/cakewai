@@ -17,7 +17,7 @@ type cartUsecase struct {
 }
 
 // AddCartItemIntoCart implements domain.CartUsecase.
-func (c *cartUsecase) AddCartItemIntoCart(context context.Context, userID primitive.ObjectID, item domain.CartItem) (*primitive.ObjectID, error) {
+func (c *cartUsecase) AddCartItemIntoCart(context context.Context, userID primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error) {
 	// Check if the user's cart exists
 	cart, err := c.cartRepository.GetCartByUserID(context, userID)
 	if err != nil {
@@ -35,13 +35,13 @@ func (c *cartUsecase) AddCartItemIntoCart(context context.Context, userID primit
 	}
 
 	// Add the item to the cart
-	addedItem, err := c.cartRepository.AddProductItemIntoCart(context, cart.CartID, item)
+	addedItem, err := c.cartRepository.AddProductItemIntoCart(context, userID, item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add item to cart for user %s: %w", userID.Hex(), err)
 	}
 
 	// Return the ID of the added item
-	return &addedItem.ProductId, nil
+	return addedItem, nil
 }
 
 // CreateCartByUserId implements domain.CartUsecase.
