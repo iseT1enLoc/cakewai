@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -145,14 +146,14 @@ func (r *cartRepository) RemoveItemFromCart(ctx context.Context, UserID primitiv
 		// Log the error with context
 		fmt.Printf("Error removing item from cart (cartID: %s, productID: %s, variant: %s): %v", UserID.Hex(), productID.Hex(), variant, err)
 		// Return a wrapped error with more context
-		return fmt.Errorf("failed to remove item from cart with ID %s: %w", UserID.Hex(), err)
+		return err
 	}
 
 	// Check if any document was modified (item removed)
 	if result.ModifiedCount == 0 {
 		fmt.Printf("No items were removed from cart (cartID: %s, productID: %s, variant: %s)", UserID.Hex(), productID.Hex(), variant)
 		// Optionally return an error or a specific message for no items modified
-		return fmt.Errorf("no item removed from cart with ID %s for product %s (variant: %s)", UserID.Hex(), productID.Hex(), variant)
+		return errors.New("Invalid product")
 	}
 
 	// Return nil if the operation was successful
