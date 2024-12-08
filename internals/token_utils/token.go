@@ -15,39 +15,49 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+
 func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, err error) {
 	//exp := time.Now().Add(time.Duration(expiry))
-	exp := time.Now().Add(time.Minute * 2)
+	exp := time.Now().Add(time.Minute * 5)
 	claims := &domain.JwtCustomClaims{
 		ID: user_id.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
+
 	}
+
+	// Create the JWT token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", claims, err
 	}
-	return t, nil
+
+	// Return the access token and claims
+	return t, claims, nil
 }
 
-func CreateRefreshToken(user_id primitive.ObjectID, secret string, expiry int) (refreshToken string, err error) {
+func CreateRefreshToken(user_id primitive.ObjectID, is_admin bool, secret string, expiry int) (refreshToken string, refresh_token_claim domain.JwtCustomRefreshClaims, err error) {
 
-	exp := time.Now().UTC().Add(7200 * time.Second)
-	claimsRefresh := &domain.JwtCustomRefreshClaims{
-		ID: user_id.String(),
+	exp := time.Now().UTC().Add(time.Minute * 2)
+	fmt.Printf("\nCreate refreshtoken exp: %v\n", exp.Local().Format("Mon Jan 2 15:04:05 2006"))
+
+	refresh_token_claim = domain.JwtCustomRefreshClaims{
+		ID:      user_id.String(),
+		IsAdmin: is_admin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
 	fmt.Printf("\nCreate refreshtoken exp: %v\n", exp)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refresh_token_claim)
 	rt, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", refresh_token_claim, err
 	}
-	return rt, nil
+	return rt, refresh_token_claim, nil
 }
 
 func Is_authorized(requestToken string, secretkey string) (bool, error) {
@@ -121,7 +131,7 @@ func ExtractIDFromToken(requestToken string, secret string) (string, error) {
 // 	return objID.Hex(), nil
 // }
 
-func ExtractID(requestToken string, secretKey string) (string, error) {
+func ExtractIDAndRole(requestToken string, secretKey string) (string, *bool, error) {
 	// Parse the token with the specified secret key
 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -130,14 +140,14 @@ func ExtractID(requestToken string, secretKey string) (string, error) {
 		return []byte(secretKey), nil
 	})
 	if err != nil || !token.Valid {
-		return "", fmt.Errorf("invalid token: %w", err)
+		return "", nil, fmt.Errorf("invalid token: %w", err)
 	}
 
 	// Extract claims as MapClaims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	fmt.Print(claims)
 	if !ok {
-		return "", errors.New("failed to parse claims")
+		return "", nil, errors.New("failed to parse claims")
 	}
 
 	// Retrieve the ID from the "name" claim
@@ -145,7 +155,7 @@ func ExtractID(requestToken string, secretKey string) (string, error) {
 	// Check the "exp" claim
 
 	if !ok {
-		return "", errors.New("expiration time (exp) claim not found")
+		return "", nil, errors.New("expiration time (exp) claim not found")
 	}
 
 	if strings.HasPrefix(idStr, "ObjectID(\"") && strings.HasSuffix(idStr, "\")") {
@@ -154,9 +164,10 @@ func ExtractID(requestToken string, secretKey string) (string, error) {
 	// Convert the string to an ObjectID
 	objID, err := primitive.ObjectIDFromHex(idStr)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse ObjectID: %w", err)
+		return "", nil, fmt.Errorf("failed to parse ObjectID: %w", err)
 	}
+	is_admin, ok := claims["is_admin"].(bool)
 
 	fmt.Printf("ID is now %v\n", objID.Hex())
-	return objID.Hex(), nil
+	return objID.Hex(), &is_admin, nil
 }

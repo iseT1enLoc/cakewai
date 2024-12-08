@@ -29,7 +29,7 @@ func (r *refreshTokenUsecase) RenewAccessToken(ctx context.Context, refresh doma
 
 	uid, _ := primitive.ObjectIDFromHex(re_token.UserID)
 	fmt.Printf("\nUserID of this app is that : %s\n", re_token.ID)
-	newacc, _ := tokenutil.CreateAccessToken(uid, env.ACCESS_SECRET, 1000)
+	newacc, _, _ := tokenutil.CreateAccessToken(uid, env.ACCESS_SECRET, false, 1000)
 	return newacc, re_token.RefreshToken, nil
 
 }
@@ -45,8 +45,8 @@ func (r *refreshTokenUsecase) GetRefreshTokenFromDB(ctx context.Context, current
 }
 
 // InsertRefreshTokenToDB implements domain.RefreshTokenUseCase.
-func (r *refreshTokenUsecase) InsertRefreshTokenToDB(ctx context.Context, refresh_token domain.RefreshTokenRequest, user_id string, env *appconfig.Env) (string, error) {
-	res, err := r.refreshTokenRepository.InsertRefreshTokenToDB(ctx, user_id, env)
+func (r *refreshTokenUsecase) InsertRefreshTokenToDB(ctx context.Context, refresh_token domain.RefreshTokenRequest, user_id string, is_admin bool, env *appconfig.Env) (string, error) {
+	res, err := r.refreshTokenRepository.InsertRefreshTokenToDB(ctx, user_id, is_admin, env)
 	print("enter refresh usecase")
 	if err != nil {
 		log.Error(err)
@@ -76,9 +76,9 @@ func (r *refreshTokenUsecase) UpdateRefreshTokenChanges(ctx context.Context, upd
 }
 
 // RefreshToken implements domain.RefreshTokenUseCase.
-func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
+func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, is_admin bool, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
 	//FOCUS------------
-	_, errs := tokenutil.ExtractID(request.RefreshToken, env.REFRESH_SECRET)
+	_, _, errs := tokenutil.ExtractIDAndRole(request.RefreshToken, env.REFRESH_SECRET)
 	if errs != nil {
 		fmt.Println("line 25 Oh my godness")
 		log.Error(err)
@@ -87,7 +87,7 @@ func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.R
 	}
 
 	// return accessToken, refreshToken, nil
-	accesstoken, refresh_token, err := r.refreshTokenRepository.RefreshToken(ctx, request.RefreshToken, env)
+	accesstoken, refresh_token, err := r.refreshTokenRepository.RefreshToken(ctx, request.RefreshToken, is_admin, env)
 	if err != nil {
 		log.Error(err)
 		return "", "", err
