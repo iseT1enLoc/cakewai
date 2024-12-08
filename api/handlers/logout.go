@@ -48,7 +48,7 @@ func (li *LogoutHandler) LogoutHandler() gin.HandlerFunc {
 			})
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, response.Success{
+		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusOK,
 				Message: "Logged out successfully",
