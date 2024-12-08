@@ -19,6 +19,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewGoogleRouter(env, timeout, db, publicRoute)
 	NewSignUpRoute(env, timeout, db, publicRoute)
 	NewLoginRoute(env, timeout, db, publicRoute)
+
 	protectedRoute.Use(middlewares.JwtAuthMiddleware(env.ACCESS_SECRET))
 
 	NewUserRouter(env, timeout, db, protectedRoute)
@@ -28,10 +29,12 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewCartRoute(env, timeout, db, protectedRoute)
 	NewOrderRoute(env, timeout, db, protectedRoute)
 	NewProductTypeRoute(env, timeout, db, publicRoute)
+	NewLogoutRoute(env, timeout, db, protectedRoute)
 	r.POST("/api/upload", service.UploadCloud())
-	r.GET("/gg", func(ctx *gin.Context) {
+	protectedRoute.GET("/gg", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
+
 	r.GET("/admin", middlewares.JwtAuthMiddleware(env.ACCESS_SECRET), middlewares.AdminMiddleware(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})

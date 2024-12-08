@@ -19,6 +19,26 @@ type refreshTokenUsecase struct {
 	contextTimeOut         time.Duration
 }
 
+// DeleteRefreshtoken implements domain.RefreshTokenUseCase.
+func (r *refreshTokenUsecase) DeleteRefreshtoken(ctx context.Context, current_RT string, env *appconfig.Env) error {
+	// Validate the input
+	if current_RT == "" {
+		fmt.Println("Refresh token is empty")
+		return fmt.Errorf("refresh token cannot be empty")
+	}
+
+	// Call the repository layer to delete the refresh token
+	err := r.refreshTokenRepository.DeleteRefreshtoken(ctx, current_RT, env)
+	if err != nil {
+		fmt.Printf("Error deleting refresh token: %v", err)
+		return fmt.Errorf("failed to delete refresh token: %w", err)
+	}
+
+	// Log success
+	fmt.Printf("Successfully deleted refresh token: %s", current_RT)
+	return nil
+}
+
 // RenewAccessToken implements domain.RefreshTokenUseCase.
 func (r *refreshTokenUsecase) RenewAccessToken(ctx context.Context, refresh domain.RefreshTokenRequest, env *appconfig.Env) (access_token string, refresh_token string, err error) {
 	re_token, err := r.GetRefreshTokenFromDB(ctx, refresh.RefreshToken, env)
