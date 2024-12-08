@@ -15,8 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-
-func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (accessToken string, err error) {
+func CreateAccessToken(user_id primitive.ObjectID, secret string, is_admin bool, expiry int) (accessToken string, claim *domain.JwtCustomClaims, err error) {
 	//exp := time.Now().Add(time.Duration(expiry))
 	exp := time.Now().Add(time.Minute * 5)
 	claims := &domain.JwtCustomClaims{
@@ -24,7 +23,6 @@ func CreateAccessToken(user_id primitive.ObjectID, secret string, expiry int) (a
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
-
 	}
 
 	// Create the JWT token with claims
