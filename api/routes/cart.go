@@ -17,6 +17,7 @@ func NewCartRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Database, 
 		CartUseCase: usecase.NewCartUsecase(cart_repo, timout),
 		Env:         Env,
 	}
+
 	//r.GET("/cart/:user_id", cart_handler.CreateCartByUserId())
 	r.POST("/cart/additem", cart_handler.AddCartItemIntoCart()) //add item into cart
 

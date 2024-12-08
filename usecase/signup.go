@@ -58,14 +58,14 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		return
 	}
 
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	accessToken, _, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, false, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	uidstring := user.Id.Hex()
 
-	refreshToken, err = s.refreshTokenrepo.InsertRefreshTokenToDB(ctx, uidstring, env)
+	refreshToken, err = s.refreshTokenrepo.InsertRefreshTokenToDB(ctx, uidstring, user.IsAdmin, env)
 	if err != nil {
 		log.Error(err)
 		return

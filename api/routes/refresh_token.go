@@ -2,7 +2,6 @@ package routes
 
 import (
 	"cakewai/cakewai.com/api/handlers"
-	"cakewai/cakewai.com/api/middlewares"
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	"cakewai/cakewai.com/repository"
 	"cakewai/cakewai.com/usecase"
@@ -44,6 +43,6 @@ func NewRefreshTokenRoute(env *appconfig.Env, timeout time.Duration, db *mongo.D
 	}
 	// Start cleanup task in the background
 	go StartTokenCleanupTask(context.Background(), repo)
-	r.GET("/refreshtoken", middlewares.TraceMiddleware("refresh token middlware"), sc.RefreshTokenHandler())
-	r.PUT("/revoke_token", middlewares.TraceMiddleware("Revoke token middlware"), sc.RevokeRefreshTokenHandler())
+	r.GET("/refreshtoken", sc.RefreshTokenHandler())
+	r.PUT("/revoke_token", sc.RevokeRefreshTokenHandler())
 }
