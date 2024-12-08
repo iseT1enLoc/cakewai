@@ -18,10 +18,11 @@ type CartRepository interface {
 	CreateCartByUserId(context context.Context, UserId primitive.ObjectID) error
 	GetAllItemsInCartByUserID(context context.Context, user_id primitive.ObjectID) ([]domain.CartItem, error)
 	GetCartByUserID(context context.Context, UserId primitive.ObjectID) (*domain.Cart, error)
-	RemoveItemFromCart(context context.Context, cartID primitive.ObjectID, product_id primitive.ObjectID, variant string) error
-	AddProductItemIntoCart(context context.Context, cardid primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error)
-	UpdateProductItemByID(context context.Context, cardID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error)
+	RemoveItemFromCart(context context.Context, UserId primitive.ObjectID, product_id primitive.ObjectID, variant string) error
+	AddProductItemIntoCart(context context.Context, UserID primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error)
+	UpdateProductItemByID(context context.Context, UserID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error)
 }
+
 type cartRepository struct {
 	db              *mongo.Database
 	collection_name string
@@ -29,11 +30,11 @@ type cartRepository struct {
 
 // DONE
 // AddProductItemIntoCart adds a product item into a user's cart by cart ID.
-func (c *cartRepository) AddProductItemIntoCart(ctx context.Context, cartID primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error) {
+func (c *cartRepository) AddProductItemIntoCart(ctx context.Context, userID primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error) {
 	collection := c.db.Collection(c.collection_name)
 
 	// Define the filter and update for the query
-	filter := bson.M{"_id": cartID}
+	filter := bson.M{"user_id": userID}
 	update := bson.M{"$push": bson.M{"items": item}}
 
 	// Perform the update operation
@@ -44,7 +45,7 @@ func (c *cartRepository) AddProductItemIntoCart(ctx context.Context, cartID prim
 
 	// Log the affected rows for debugging purposes
 	if res.ModifiedCount == 0 {
-		return nil, fmt.Errorf("no cart found with the specified ID: %s", cartID.Hex())
+		return nil, fmt.Errorf("no cart found with the specified ID: %s", userID.Hex())
 	}
 
 	return &item, nil
@@ -119,11 +120,11 @@ func (c *cartRepository) GetCartByUserID(ctx context.Context, userID primitive.O
 }
 
 // RemoveItemFromCart removes a product item from the cart.
-func (r *cartRepository) RemoveItemFromCart(ctx context.Context, cartID primitive.ObjectID, productID primitive.ObjectID, variant string) error {
+func (r *cartRepository) RemoveItemFromCart(ctx context.Context, UserID primitive.ObjectID, productID primitive.ObjectID, variant string) error {
 	collection := r.db.Collection(r.collection_name)
 
 	// Define the filter to find the cart document
-	cartFilter := bson.M{"_id": cartID}
+	cartFilter := bson.M{"user_id": UserID}
 
 	// Define the update to pull the product item from the cart's items array
 	update := bson.M{
@@ -133,35 +134,38 @@ func (r *cartRepository) RemoveItemFromCart(ctx context.Context, cartID primitiv
 				"variant":    variant,
 			},
 		},
+		"$set": bson.M{
+			"updatedAt": time.Now().UTC(),
+		},
 	}
 
 	// Perform the update operation
 	result, err := collection.UpdateOne(ctx, cartFilter, update)
 	if err != nil {
 		// Log the error with context
-		fmt.Printf("Error removing item from cart (cartID: %s, productID: %s, variant: %s): %v", cartID.Hex(), productID.Hex(), variant, err)
+		fmt.Printf("Error removing item from cart (cartID: %s, productID: %s, variant: %s): %v", UserID.Hex(), productID.Hex(), variant, err)
 		// Return a wrapped error with more context
-		return fmt.Errorf("failed to remove item from cart with ID %s: %w", cartID.Hex(), err)
+		return fmt.Errorf("failed to remove item from cart with ID %s: %w", UserID.Hex(), err)
 	}
 
 	// Check if any document was modified (item removed)
 	if result.ModifiedCount == 0 {
-		fmt.Printf("No items were removed from cart (cartID: %s, productID: %s, variant: %s)", cartID.Hex(), productID.Hex(), variant)
+		fmt.Printf("No items were removed from cart (cartID: %s, productID: %s, variant: %s)", UserID.Hex(), productID.Hex(), variant)
 		// Optionally return an error or a specific message for no items modified
-		return fmt.Errorf("no item removed from cart with ID %s for product %s (variant: %s)", cartID.Hex(), productID.Hex(), variant)
+		return fmt.Errorf("no item removed from cart with ID %s for product %s (variant: %s)", UserID.Hex(), productID.Hex(), variant)
 	}
 
 	// Return nil if the operation was successful
-	fmt.Printf("Item removed from cart (cartID: %s, productID: %s, variant: %s)", cartID.Hex(), productID.Hex(), variant)
+	fmt.Printf("Item removed from cart (cartID: %s, productID: %s, variant: %s)", UserID.Hex(), productID.Hex(), variant)
 	return nil
 }
 
 // DONE
-func (c *cartRepository) UpdateProductItemByID(context context.Context, cartID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
+func (c *cartRepository) UpdateProductItemByID(context context.Context, UserID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
 	collection := c.db.Collection(c.collection_name)
 	// Define the filter to locate the specific cart and item
 	filter := bson.M{
-		"_id": cartID,
+		"user_id": UserID,
 		"items": bson.M{
 			"$elemMatch": bson.M{
 				"product_id": updatedItem.ProductId,
@@ -173,7 +177,10 @@ func (c *cartRepository) UpdateProductItemByID(context context.Context, cartID p
 	// Define the update to set a new quantity
 	update := bson.M{
 		"$set": bson.M{
+			"items.$.discount":     updatedItem.Discount,
+			"items.$.price":        updatedItem.Price,
 			"items.$.buy_quantity": updatedItem.BuyQuantity, // Use the positional operator `$` to target the matched item
+			"updatedAt":            time.Now().UTC(),
 		},
 	}
 	res, err := collection.UpdateOne(context, filter, update)
