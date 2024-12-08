@@ -82,8 +82,8 @@ func (ch *CartHandler) GetAllItemsInCartByUserID() gin.HandlerFunc {
 		}
 		ctx.JSON(http.StatusCreated, response.Success{
 			ResponseFormat: response.ResponseFormat{
-				Code:    http.StatusCreated,
-				Message: "Successfully create empty cart",
+				Code:    http.StatusOK,
+				Message: "Successfully get all cart items",
 			},
 			Data: all_items_in_carts,
 		})
