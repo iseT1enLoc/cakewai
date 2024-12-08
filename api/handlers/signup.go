@@ -80,7 +80,7 @@ func (sc *SignupController) SignUp() gin.HandlerFunc {
 		}
 
 		// Send the success response
-		c.JSON(http.StatusOK, response.Success{
+		c.JSON(http.StatusCreated, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusCreated,
 				Message: "Registered successfully",

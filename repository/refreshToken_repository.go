@@ -20,7 +20,7 @@ type RefreshTokenRepository interface {
 	InsertRefreshTokenToDB(ctx context.Context, user_id string, is_admin bool, env *appconfig.Env) (string, error)
 	GetRefreshTokenFromDB(ctx context.Context, current_refresh_token string, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
 	UpdateRefreshTokenChanges(ctx context.Context, updatedRT domain.RefreshTokenRequest, env *appconfig.Env) (*domain.RefreshTokenRequest, error)
-
+	DeleteRefreshtoken(ctx context.Context, current_RT string, env *appconfig.Env) error
 	// Method for cleanup of expired tokens
 	CleanupExpiredTokens(ctx context.Context) error
 }
@@ -28,6 +28,32 @@ type RefreshTokenRepository interface {
 type refreshtokenRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// DeleteRefreshtoken implements RefreshTokenRepository.
+func (r *refreshtokenRepository) DeleteRefreshtoken(ctx context.Context, current_RT string, env *appconfig.Env) error {
+	// Define the collection
+	collection := r.db.Collection(r.collection_name) // Replace with your actual collection name
+
+	// Construct the filter to identify the document to delete
+	filter := bson.M{"refresh_token": current_RT}
+
+	// Perform the delete operation
+	result, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		fmt.Printf("Failed to delete refresh token: %v", err)
+		return fmt.Errorf("could not delete refresh token: %w", err)
+	}
+
+	// Check if no documents were deleted
+	if result.DeletedCount == 0 {
+		fmt.Printf("No refresh token found to delete for token: %s", current_RT)
+		return fmt.Errorf("refresh token not found")
+	}
+
+	// Log success
+	fmt.Printf("Successfully deleted refresh token: %s", current_RT)
+	return nil
 }
 
 // CleanupExpiredTokens implements RefreshTokenRepository.
