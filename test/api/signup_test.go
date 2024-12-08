@@ -64,16 +64,16 @@ func (m *MockCartUseCase) RemoveItemFromCart(ctx context.Context, cartID primiti
 }
 
 // AddCartItemIntoCart mocks the AddCartItemIntoCart method
-func (m *MockCartUseCase) AddCartItemIntoCart(ctx context.Context, cartID primitive.ObjectID, item domain.CartItem) (*primitive.ObjectID, error) {
+func (m *MockCartUseCase) AddCartItemIntoCart(ctx context.Context, cartID primitive.ObjectID, item domain.CartItem) (*domain.CartItem, error) {
 	args := m.Called(ctx, cartID, item)
 	if args.Get(0) != nil {
-		return args.Get(0).(*primitive.ObjectID), args.Error(1)
+		return args.Get(0).(*domain.CartItem), args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
 // UpdateCartItemByID mocks the UpdateCartItemByID method
-func (m *MockCartUseCase) UpdateCartItemByID(ctx context.Context, cartID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
+func (m *MockCartUseCase) UpdateAnCartItemByUserID(ctx context.Context, cartID primitive.ObjectID, updatedItem domain.CartItem) (*domain.CartItem, error) {
 	args := m.Called(ctx, cartID, updatedItem)
 	if args.Get(0) != nil {
 		return args.Get(0).(*domain.CartItem), args.Error(1)
