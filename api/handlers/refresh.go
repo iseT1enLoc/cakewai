@@ -4,7 +4,6 @@ import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	"cakewai/cakewai.com/component/response"
 	"cakewai/cakewai.com/domain"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,20 +20,19 @@ type onlyRRefreshRequest struct {
 
 func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		// Step 1: Parse and validate the request body
 		var reqToken onlyRRefreshRequest
-		//Bind JSON request body to RefreshTokenRequest
 		if err := c.ShouldBindJSON(&reqToken); err != nil {
-
-			fmt.Println("Error at line 23")
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Can not parsing from json",
+				Message: "Invalid JSON input",
 				Error:   err.Error(),
 			})
 			return
 		}
-		refresh_token, err := u.RefreshTokenUsecase.GetRefreshTokenFromDB(c, reqToken.TokenID, u.Env)
+
+		// Step 2: Retrieve the refresh token from the database
+		refreshToken, err := u.RefreshTokenUsecase.GetRefreshTokenFromDB(c, reqToken.TokenID, u.Env)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,
@@ -44,84 +42,70 @@ func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
 			return
 		}
 
-		if time.Now().Local().After(refresh_token.ExpireAt.Local()) || refresh_token.IsExpire {
-
-			accessToken, refresh_token, err := u.RefreshTokenUsecase.RefreshToken(c, *refresh_token, u.Env)
-
-			fmt.Println(accessToken)
-			fmt.Println(refresh_token)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, response.FailedResponse{
-					Code:    http.StatusBadRequest,
-					Message: "Error happened after refresh token",
-					Error:   err.Error(),
-				})
-				return
-			}
-
-			responsetoken := domain.RefreshShortResponse{
-				AccessToken:  accessToken,
-				RefreshToken: refresh_token,
-			}
-
-			c.JSON(http.StatusOK, response.Success{
-				ResponseFormat: response.ResponseFormat{
-					Code:    200,
-					Message: "Refresh token",
-				},
-				Data: responsetoken,
+		// Step 3: Validate the refresh token's expiration status
+		if time.Now().After(refreshToken.ExpireAt) || refreshToken.IsExpire {
+			c.JSON(http.StatusUnauthorized, response.FailedResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Refresh token expired",
+				Error:   "Token is no longer valid",
 			})
 			return
-
 		}
 
-		accessToken, refreshtoken, err := u.RefreshTokenUsecase.RenewAccessToken(c, *refresh_token, u.Env)
+		// Step 4: Renew access and refresh tokens
+		accessToken, newRefreshToken, err := u.RefreshTokenUsecase.RenewAccessToken(c, *refreshToken, u.Env)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error happened while renew access token",
+			c.JSON(http.StatusInternalServerError, response.FailedResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Failed to renew access token",
 				Error:   err.Error(),
 			})
 			return
 		}
-		responsetoken := domain.RefreshShortResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshtoken,
-		}
+
+		// Step 5: Respond with new tokens
 		c.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusOK,
-				Message: "Successfully renew token",
+				Message: "Tokens renewed successfully",
 			},
-			Data: responsetoken,
+			Data: domain.RefreshShortResponse{
+				AccessToken:  accessToken,
+				RefreshToken: newRefreshToken,
+			},
 		})
-
 	}
 }
 func (u *RefreshTokenHandler) RevokeRefreshTokenHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request domain.RefreshTokenRequest
 
-		//Bind JSON request body to RefreshTokenRequest
+		// Parse the JSON request body
 		if err := c.ShouldBindJSON(&request); err != nil {
-			fmt.Println("Error at line 23")
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		fmt.Println(request)
-
-		err := u.RefreshTokenUsecase.RevokeToken(c, request.RefreshToken, u.Env)
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    0,
+				Message: "Invalid request payload",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		c.JSON(http.StatusOK, response.BasicResponse{
-			Code:    200,
-			Message: "You have successfully revoke refresh token",
-			Error:   "None",
-			Data:    "okokkokok",
+		// Attempt to revoke the refresh token
+		if err := u.RefreshTokenUsecase.RevokeToken(c, request.RefreshToken, u.Env); err != nil {
+			c.JSON(http.StatusUnauthorized, response.FailedResponse{
+				Code:    0,
+				Message: "Failed to revoke refresh token",
+				Error:   err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Refresh token successfully revoked",
+			},
+			Data: gin.H{"status": "success"},
 		})
+
 	}
 }

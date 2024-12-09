@@ -49,8 +49,8 @@ func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appc
 	fmt.Println("Enter line 46 google login")
 	user := &domain.User{
 		Id:             primitive.NewObjectID(),
-		GoogleId:       googleUser.Id,
-		ProfilePicture: googleUser.Picture,
+		GoogleId:       &googleUser.Id,
+		ProfilePicture: &googleUser.Picture,
 		Email:          googleUser.Email,
 		Name:           googleUser.Name,
 		CreatedAt:      time.Now().UTC(),
@@ -77,14 +77,14 @@ func (lu *googleUseCase) GoogleLogin(ctx context.Context, data []byte, env *appc
 		user = existingUser
 	}
 
-	accessToken, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, env.ACCESS_TOK_EXP)
+	accessToken, _, err = tokenutil.CreateAccessToken(user.Id, env.ACCESS_SECRET, false, env.ACCESS_TOK_EXP)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	uidstring := user.Id.Hex()
 
-	refreshToken, err = lu.refresh_repo.InsertRefreshTokenToDB(ctx, uidstring, env)
+	refreshToken, err = lu.refresh_repo.InsertRefreshTokenToDB(ctx, uidstring, user.IsAdmin, env)
 	if err != nil {
 		log.Error(err)
 		return
