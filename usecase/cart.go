@@ -30,7 +30,13 @@ func (c *cartUsecase) AddCartItemIntoCart(context context.Context, userID primit
 	// Check if the item already exists in the cart
 	for _, cartItem := range cart.Items {
 		if cartItem.ProductId == item.ProductId && cartItem.Variant == item.Variant {
-			return nil, fmt.Errorf("item with product_id %s and variant %s already exists in the cart", item.ProductId.Hex(), item.Variant)
+			item.BuyQuantity = cartItem.BuyQuantity + item.BuyQuantity
+			_, err := c.cartRepository.UpdateProductItemByID(context, userID, item)
+			if err != nil {
+				return nil, fmt.Errorf("can not update: item with product_id %s and variant %s already exists in the cart", item.ProductId.Hex(), item.Variant)
+			}
+			return &item, nil
+
 		}
 	}
 
