@@ -18,7 +18,62 @@ type onlyRRefreshRequest struct {
 	TokenID string `json:"refresh_token" bson:"refresh_token" form:"refresh_token" binding:"required"`
 }
 
-func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
+func (u *RefreshTokenHandler) RenewRefreshToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Step 1: Parse and validate the request body
+		var reqToken onlyRRefreshRequest
+		if err := c.ShouldBindJSON(&reqToken); err != nil {
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid JSON input",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		// // Create an instance of the custom claims struct
+		// claims := &domain.JwtCustomClaims{}
+
+		// // Parse the token string with claims
+		// _, err := jwt.ParseWithClaims(req.TokenID, claims, func(token *jwt.Token) (interface{}, error) {
+		// 	// Validate the signing method
+		// 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		// 		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		// 	}
+		// 	// Return the secret key
+		// 	return []byte(u.Env.REFRESH_SECRET), nil
+		// })
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, response.FailedResponse{
+		// 		Code:    http.StatusBadRequest,
+		// 		Message: "Error while persing token",
+		// 		Error:   err.Error(),
+		// 	})
+		// 	return
+		// }
+		accessToken, refreshToken, err := u.RefreshTokenUsecase.RefreshToken(c.Request.Context(), reqToken.TokenID, false, u.Env)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error while creating new refresh token ",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Refresh token renewed successfully",
+			},
+			Data: domain.RefreshShortResponse{
+				AccessToken:  accessToken,
+				RefreshToken: refreshToken,
+			},
+		})
+	}
+}
+func (u *RefreshTokenHandler) RenewAcessTokenHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Step 1: Parse and validate the request body
 		var reqToken onlyRRefreshRequest
@@ -67,7 +122,7 @@ func (u *RefreshTokenHandler) RefreshTokenHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusOK,
-				Message: "Tokens renewed successfully",
+				Message: "Access Tokens renewed successfully",
 			},
 			Data: domain.RefreshShortResponse{
 				AccessToken:  accessToken,

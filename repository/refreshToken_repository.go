@@ -159,6 +159,10 @@ func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT st
 
 	// Retrieve the current refresh token from the database
 	re_token, err := r.GetRefreshTokenFromDB(ctx, current_RT, env)
+	if re_token.IsExpire || time.Now().After(re_token.ExpireAt) {
+		log.Printf("Error fetching refresh token from DB: %v", err)
+		return "", "", fmt.Errorf("refresh token expired: %v", err)
+	}
 	if err != nil {
 		log.Printf("Error fetching refresh token from DB: %v", err)
 		return "", "", fmt.Errorf("failed to retrieve refresh token: %w", err)
@@ -179,7 +183,7 @@ func (r *refreshtokenRepository) RefreshToken(ctx context.Context, current_RT st
 	}
 
 	// Create a new access token using the user ID
-	id, err := primitive.ObjectIDFromHex(re_token.RefreshToken)
+	id, err := primitive.ObjectIDFromHex(re_token.UserID)
 	if err != nil {
 		log.Printf("Error converting refresh token to ObjectID: %v", err)
 		return "", "", fmt.Errorf("failed to convert refresh token to ObjectID: %w", err)
