@@ -96,18 +96,19 @@ func (r *refreshTokenUsecase) UpdateRefreshTokenChanges(ctx context.Context, upd
 }
 
 // RefreshToken implements domain.RefreshTokenUseCase.
-func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, request domain.RefreshTokenRequest, is_admin bool, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
+func (r *refreshTokenUsecase) RefreshToken(ctx context.Context, refresh_token string, is_admin bool, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
 	//FOCUS------------
-	_, _, errs := tokenutil.ExtractIDAndRole(request.RefreshToken, env.REFRESH_SECRET)
+	_, _, errs := tokenutil.ExtractIDAndRole(refresh_token, env.REFRESH_SECRET)
+	fmt.Println("Error at line 102")
 	if errs != nil {
 		fmt.Println("line 25 Oh my godness")
 		log.Error(err)
 
 		return
 	}
-
+	fmt.Println("Error at line 108")
 	// return accessToken, refreshToken, nil
-	accesstoken, refresh_token, err := r.refreshTokenRepository.RefreshToken(ctx, request.RefreshToken, is_admin, env)
+	accesstoken, refresh_token, err := r.refreshTokenRepository.RefreshToken(ctx, refresh_token, is_admin, env)
 	if err != nil {
 		log.Error(err)
 		return "", "", err
