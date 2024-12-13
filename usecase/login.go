@@ -41,7 +41,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
 		fmt.Printf("Password retrieve from database %s\n", user.Password)
 		fmt.Println(request.Password)
-		log.Error(err)
+		fmt.Println(err)
 		err = apperror.ErrInvalidPassword
 		return
 	}

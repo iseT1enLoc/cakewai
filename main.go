@@ -1,16 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
-
 	"cakewai/cakewai.com/api/middlewares"
 	"cakewai/cakewai.com/api/routes"
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	appctx "cakewai/cakewai.com/component/appcontext"
 	mongodb "cakewai/cakewai.com/infras/mongo"
+	"fmt"
+	"log"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +37,8 @@ func main() {
 	// 	ctx.JSON(http.StatusOK, gin.H{"data": "hello everyone, welcome to my chanel"})
 	// })
 	r.Run("localhost:8080")
-	//r.Run()
+	r.Run()
+
 }
 
 //mongodb+srv://hoaibao123456:9DQ18WlqmeoF9f7u@cakewai.auh9m.mongodb.net/?retryWrites=true&w=majority&appName=cakewai

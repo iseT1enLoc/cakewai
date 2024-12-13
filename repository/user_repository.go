@@ -206,7 +206,7 @@ func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) erro
 	defer cancel() // Ensure resources are released
 
 	collection := u.db.Collection(u.collection_name)
-
+	fmt.Println(user.Password)
 	// Construct the update fields
 	updateFields := bson.M{
 		"$set": bson.M{
