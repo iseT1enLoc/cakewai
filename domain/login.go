@@ -2,6 +2,7 @@ package domain
 
 import (
 	appconfig "cakewai/cakewai.com/component/appcfg"
+
 	"context"
 )
 
@@ -16,5 +17,5 @@ type LoginResponse struct {
 }
 
 type LoginUseCase interface {
-	Login(ctx context.Context, request LoginRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error)
+	Login(ctx context.Context, request LoginRequest, env *appconfig.Env) (user *User, accessToken string, refreshToken string, err error)
 }
