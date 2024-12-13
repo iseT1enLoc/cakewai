@@ -25,6 +25,7 @@ type ProductRequest struct {
 type ProductVariant struct {
 	VarientFeatures string  `json:"variant_features" bson:"variant_features"`
 	Price           float64 `json:"price" bson:"price"`
+	NumInStore      int     `json:"num_in_store" bson:"num_in_store" default:"100"`
 	Discount        float64 `json:"discount" bson:"discount"`
 }
 
