@@ -15,51 +15,6 @@ type LoginHandler struct {
 	Env          *appconfig.Env
 }
 
-// func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		var request domain.LoginRequest
-// 		// Context timeout handling
-// 		ctx, cancel := context.WithTimeout(c, time.Second*5)
-// 		defer cancel()
-
-// 		fmt.Printf("line 21 login handler")
-// 		// Bind JSON request body to LoginRequest
-// 		if err := c.ShouldBindJSON(&request); err != nil {
-// 			c.JSON(http.StatusBadRequest, response.FailedResponse{
-// 				Code:    http.StatusBadRequest,
-// 				Message: "Can not parsing the resquest",
-// 				Error:   err.Error(),
-// 			})
-// 			return
-// 		}
-// 		fmt.Print("line 27 login handler")
-
-// 		accessToken, refreshToken, err := li.LoginUsecase.Login(c, request, li.Env)
-// 		if err != nil {
-// 			c.JSON(http.StatusBadRequest, response.FailedResponse{
-// 				Code:    http.StatusBadRequest,
-// 				Message: "Can not parsing the resquest",
-// 				Error:   err.Error(),
-// 			})
-// 			return
-// 		}
-// 		fmt.Print("line 34 login handler")
-// 		loginresponse := domain.LoginResponse{
-// 			AccessToken:  accessToken,
-// 			RefreshToken: refreshToken,
-// 		}
-// 		// Set user ID in context
-// 		// Send the response
-// 		c.JSON(http.StatusOK, response.Success{
-// 			ResponseFormat: response.ResponseFormat{
-// 				Code:    http.StatusCreated,
-// 				Message: "Login Successfully",
-// 			},
-// 			Data: loginresponse,
-// 		})
-
-//		}
-//	}
 func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request domain.LoginRequest
@@ -79,7 +34,7 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 		fmt.Println("Request parsed successfully.")
 
 		// Perform login operation using the use case
-		accessToken, refreshToken, err := li.LoginUsecase.Login(c, request, li.Env)
+		user, accessToken, refreshToken, err := li.LoginUsecase.Login(c, request, li.Env)
 		if err != nil {
 			fmt.Println("Login failed:", err)
 			c.JSON(http.StatusUnauthorized, response.FailedResponse{
@@ -90,11 +45,17 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 			return
 		}
 		fmt.Println("Login successful. Tokens generated.")
+		type loginUserResponse struct {
+			AccessToken  string       `json:"access_token"`
+			RefreshToken string       `json:"refresh_token"`
+			User         *domain.User `json:"user"`
+		}
 
-		// Construct the response structure
-		loginResponse := domain.LoginResponse{
+		// Construct the response
+		res := loginUserResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
+			User:         user,
 		}
 
 		// Send the response
@@ -103,7 +64,7 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 				Code:    http.StatusOK,
 				Message: "Login successful",
 			},
-			Data: loginResponse,
+			Data: res,
 		})
 		fmt.Println("LoginHandler completed successfully.")
 	}
