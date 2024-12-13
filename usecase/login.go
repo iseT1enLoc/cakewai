@@ -21,8 +21,8 @@ type loginUsecase struct {
 }
 
 // Login implements domain.LoginUseCase.
-func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, env *appconfig.Env) (accessToken string, refreshToken string, err error) {
-	var user *domain.User
+func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, env *appconfig.Env) (user *domain.User, accessToken string, refreshToken string, err error) {
+
 	fmt.Print("line 25 login usecase")
 	user, err = l.userRepository.GetUserByEmail(ctx, request.Email)
 	fmt.Printf("\nUser id of this function is that %v", user.Id)
@@ -63,7 +63,7 @@ func (l *loginUsecase) Login(ctx context.Context, request domain.LoginRequest, e
 		return
 	}
 
-	return accessToken, refreshtoken, nil
+	return user, accessToken, refreshtoken, nil
 }
 
 func NewLoginUseCase(user repository.UserRepository, refreshtoken repository.RefreshTokenRepository, timeout time.Duration) domain.LoginUseCase {
