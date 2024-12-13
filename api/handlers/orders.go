@@ -64,6 +64,7 @@ func (o *OrderHandler) CreatOrderHandler() gin.HandlerFunc {
 			UpdatedAt:       time.Now(),
 			ShippingAddress: order_req.ShippingAdress,
 			PaymentInfo:     order_req.PaymentInfo,
+			ShippingStatus:  order_req.ShippingStatus,
 		}
 		// order.CustomerID = hex_user_id
 		// order.ID = primitive.NewObjectID()
@@ -129,6 +130,7 @@ func (o *OrderHandler) UpdateOrder() gin.HandlerFunc {
 			})
 			return
 		}
+		updated_order.UpdatedAt = time.Now().Local()
 		res, err := o.OrderUsecase.UpdateOrder(ctx, updated_order)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -138,6 +140,7 @@ func (o *OrderHandler) UpdateOrder() gin.HandlerFunc {
 			})
 			return
 		}
+
 		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusOK,
