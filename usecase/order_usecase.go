@@ -16,6 +16,16 @@ type orderUsecase struct {
 	timeout          time.Duration
 }
 
+// GetOrderByCustomerID implements domain.OrderUsecase.
+func (o *orderUsecase) GetOrdersByCustomerID(context context.Context, CustomerID primitive.ObjectID) ([]*domain.Order, error) {
+	order, err := o.order_repository.GetOrdersByCustomerID(context, CustomerID)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return order, nil
+}
+
 // DONE
 func (o *orderUsecase) CreateOrder(context context.Context, order domain.Order) (*domain.Order, error) {
 	res, err := o.order_repository.CreateOrder(context, order)
