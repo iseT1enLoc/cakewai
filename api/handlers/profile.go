@@ -142,12 +142,12 @@ func (uc *UserController) UpdateUser() gin.HandlerFunc {
 			})
 			return
 		}
-
+		fmt.Println(user)
 		// Set the user ID
 		user.Id = userId
 
 		// Call the use case to update the user
-		if err := uc.UserUseCase.UpdateUser(c.Request.Context(), &user); err != nil {
+		if err := uc.UserUseCase.UpdateUser(c, &user); err != nil {
 			log.Error(err)
 			c.JSON(http.StatusBadRequest, response.FailedResponse{
 				Code:    http.StatusBadRequest,

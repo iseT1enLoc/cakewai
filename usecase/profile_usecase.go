@@ -44,8 +44,8 @@ func (p *profileUseCase) GetListUsers(c context.Context) ([]*domain.UserResponse
 			Name:           user.Name,
 			Email:          user.Email,
 			Phone:          user.Phone,
+			Address:        user.Address,
 			CreatedAt:      user.CreatedAt,
-			RoleID:         user.RoleID,
 		})
 	}
 	return urs, nil
@@ -67,6 +67,7 @@ func (p *profileUseCase) GetUserById(c context.Context, id string) (*domain.User
 		Name:           user.Name,
 		Email:          user.Email,
 		Phone:          user.Phone,
+		Address:        user.Address,
 		CreatedAt:      user.CreatedAt,
 	}
 	return ur, nil
@@ -74,7 +75,7 @@ func (p *profileUseCase) GetUserById(c context.Context, id string) (*domain.User
 
 // UpdateUser implements domain.UserUseCase.
 func (p *profileUseCase) UpdateUser(c context.Context, user *domain.User) error {
-	ctx, cancel := context.WithTimeout(c, p.contextTimeOut)
+	ctx, cancel := context.WithTimeout(c, time.Second*10)
 	defer cancel()
 	return p.userRepository.UpdateUser(ctx, user)
 }
