@@ -53,18 +53,28 @@ func (o *OrderHandler) CreatOrderHandler() gin.HandlerFunc {
 			})
 			return
 		}
+
+		fmt.Println(order_req.OrderItems)
+		fmt.Println("#######################")
 		//var order domain.Order
 		order := domain.Order{
 			ID:              primitive.NewObjectID(),
 			CustomerID:      hex_user_id,
+			CustomerName:    order_req.CustomerName,
+			ShippingAddress: order_req.ShippingAddress,
+			PhoneNumber:     order_req.PhoneNumber,
+			Notes:           order_req.Notes,
 			OrderItems:      order_req.OrderItems,
 			TotalPrice:      0,
-			OrderStatus:     "pending",
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
-			ShippingAddress: order_req.ShippingAdress,
-			PaymentInfo:     order_req.PaymentInfo,
-			ShippingStatus:  order_req.ShippingStatus,
+			PaymentInfo: domain.Payment{
+				PaymentMethod: "cash",
+				IsPaid:        0,
+			},
+			Email:          order_req.Email,
+			ServiceType:    order_req.ServiceType,
+			OrderStatus:    "pending",
+			ShippingStatus: "pending",
+			CreatedAt:      time.Now(),
 		}
 		// order.CustomerID = hex_user_id
 		// order.ID = primitive.NewObjectID()
@@ -130,7 +140,7 @@ func (o *OrderHandler) UpdateOrder() gin.HandlerFunc {
 			})
 			return
 		}
-		updated_order.UpdatedAt = time.Now().Local()
+		updated_order.UpdatedAt = time.Now()
 		res, err := o.OrderUsecase.UpdateOrder(ctx, updated_order)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -217,6 +227,37 @@ func (o *OrderHandler) GetOrderByID() gin.HandlerFunc {
 			ResponseFormat: response.ResponseFormat{
 				Code:    http.StatusOK,
 				Message: "Successfully get order by id",
+			},
+			Data: order,
+		})
+	}
+}
+func (o *OrderHandler) GetOrderByCustomerID() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		order_param := ctx.Query("customer_id")
+
+		objID, err := primitive.ObjectIDFromHex(order_param)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error converting order id to object id",
+				Error:   err.Error(),
+			})
+			return
+		}
+		order, err := o.OrderUsecase.GetOrdersByCustomerID(ctx, objID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while querying database",
+				Error:   err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully get order by customer id",
 			},
 			Data: order,
 		})

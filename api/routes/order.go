@@ -28,9 +28,10 @@ func NewOrderRoute(Env *appconfig.Env, timeout time.Duration, db *mongo.Database
 		OrderUsecase: usecase.NewOrderUsecase(order_repo, timeout),
 		Env:          Env,
 	}
-	r.GET("/orders", order_handler.GetAllOrders())          //DONE
-	r.GET("/order/:order_id", order_handler.GetOrderByID()) //DONE
-	r.POST("/order", order_handler.CreatOrderHandler())     //DONE
+	r.GET("/orders", order_handler.GetAllOrders())            //DONE
+	r.GET("/order/:order_id", order_handler.GetOrderByID())   //DONE
+	r.GET("/order/cus", order_handler.GetOrderByCustomerID()) //DONE
+	r.POST("/order", order_handler.CreatOrderHandler())       //DONE
 	r.PUT("/order/update", order_handler.UpdateOrder())
 	r.PATCH("/order/paystatus", order_handler.UpdateOrderStatus()) //DONE
 }
