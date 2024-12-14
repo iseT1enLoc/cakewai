@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -65,7 +67,7 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 			"password":        user.Password,
 			"email":           user.Email,
 			"phone":           nil,
-			"address":         nil,
+			"address":         domain.Address{},
 			"profile_picture": user.ProfilePicture,
 			"createdAt":       time.Now().UTC(),
 			"updatedAt":       nil,
@@ -86,7 +88,7 @@ func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 		"password":        user.Password,
 		"email":           user.Email,
 		"phone":           nil,
-		"address":         nil,
+		"address":         domain.Address{},
 		"profile_picture": user.ProfilePicture,
 		"createdAt":       time.Now().UTC(),
 		"updatedAt":       nil,
@@ -149,6 +151,9 @@ func (u *userRepository) GetUserById(ctx context.Context, id string) (*domain.Us
 
 	// Query the database
 	err = collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&fuser)
+	fmt.Println("Print at line 152 and below is user")
+	fmt.Println(fuser)
+	fmt.Printf("\nUser homecode %s\n", fuser.Address.Homecode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			log.Printf("No user found with ID: %s", id)
@@ -202,27 +207,58 @@ func (u *userRepository) GetUsers(ctx context.Context) ([]*domain.User, error) {
 // UpdateUser implements UserRepository.
 func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) error {
 	// Set a timeout for the operation
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel() // Ensure resources are released
+	// ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	// defer cancel() // Ensure resources are released
 
 	collection := u.db.Collection(u.collection_name)
 	fmt.Println(user.Password)
-	// Construct the update fields
-	updateFields := bson.M{
-		"$set": bson.M{
-			"google_id":       user.GoogleId,
-			"profile_picture": user.ProfilePicture,
-			"name":            user.Name,
-			"password":        user.Password,
-			"email":           user.Email,
-			"phone":           user.Phone,
-			"address":         user.Address,
-			"created_at":      user.CreatedAt,
-			"updated_at":      time.Now(), // Update `updated_at` to the current time
-			"role_id":         user.RoleID,
-		},
+	fmt.Println(user)
+	fmt.Println("enter line 210")
+	var updateFields bson.M
+	if user.Password != "" {
+		encryptedPassword, _ := bcrypt.GenerateFromPassword(
+			[]byte(user.Password),
+			bcrypt.DefaultCost,
+		)
+		// Construct the update fields
+		updateFields = bson.M{
+			"$set": bson.M{
+				"google_id":            user.GoogleId,
+				"profile_picture":      user.ProfilePicture,
+				"name":                 user.Name,
+				"password":             encryptedPassword,
+				"email":                user.Email,
+				"phone":                user.Phone,
+				"created_at":           user.CreatedAt,
+				"updated_at":           time.Now(), // Update `updated_at` to the current time
+				"address.home_code":    user.Address.Homecode,
+				"address.street":       user.Address.Street,
+				"address.district":     user.Address.District,
+				"address.province":     user.Address.Province,
+				"address.full_address": user.Address.FullAddress,
+			},
+		}
+	} else {
+		// Construct the update fields
+		updateFields = bson.M{
+			"$set": bson.M{
+				"google_id":            user.GoogleId,
+				"profile_picture":      user.ProfilePicture,
+				"name":                 user.Name,
+				"email":                user.Email,
+				"phone":                user.Phone,
+				"created_at":           user.CreatedAt,
+				"updated_at":           time.Now(), // Update `updated_at` to the current time
+				"address.home_code":    user.Address.Homecode,
+				"address.street":       user.Address.Street,
+				"address.district":     user.Address.District,
+				"address.province":     user.Address.Province,
+				"address.full_address": user.Address.FullAddress,
+			},
+		}
 	}
 
+	fmt.Println(user.Id)
 	// Perform the update operation
 	result, err := collection.UpdateOne(ctx, bson.M{"_id": user.Id}, updateFields)
 	if err != nil {

@@ -22,6 +22,18 @@ type User struct {
 	RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
 }
 
+//	type UserResponse struct {
+//		Id             primitive.ObjectID `json:"id" bson:"_id"`
+//		GoogleId       *string            `json:"google_id" bson:"google_id"`
+//		ProfilePicture *string            `json:"profile_picture" bson:"profile_picture"`
+//		Name           string             `json:"name" bson:"name"`
+//		Email          string             `json:"email" bson:"email"`
+//		Phone          string             `json:"phone" bson:"phone"`
+//		Address        Address            `json:"address" bson:"address"`
+//		IsAdmin        bool               `json:"is_admin" bson:"is_admin"`
+//		CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
+//		RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
+//	}
 type UserResponse struct {
 	Id             primitive.ObjectID `json:"id" bson:"_id"`
 	GoogleId       *string            `json:"google_id" bson:"google_id"`
@@ -29,9 +41,8 @@ type UserResponse struct {
 	Name           string             `json:"name" bson:"name"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
-	IsAdmin        bool               `json:"is_admin" bson:"is_admin"`
-	CreatedAt      time.Time          `json:"created_at" bson:"createdAt"`
-	RoleID         string             `json:"role_id,omitempty" bson:"role_id,omitempty"`
+	Address        Address            `json:"address" bson:"address"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 }
 
 type UserUseCase interface {

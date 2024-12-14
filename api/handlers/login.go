@@ -46,16 +46,25 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 		}
 		fmt.Println("Login successful. Tokens generated.")
 		type loginUserResponse struct {
-			AccessToken  string       `json:"access_token"`
-			RefreshToken string       `json:"refresh_token"`
-			User         *domain.User `json:"user"`
+			AccessToken  string               `json:"access_token"`
+			RefreshToken string               `json:"refresh_token"`
+			User         *domain.UserResponse `json:"user"`
 		}
 
 		// Construct the response
 		res := loginUserResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			User:         user,
+			User: &domain.UserResponse{
+				Id:             user.Id,
+				GoogleId:       user.GoogleId,
+				ProfilePicture: user.ProfilePicture,
+				Name:           user.Name,
+				Email:          user.Email,
+				Phone:          user.Phone,
+				Address:        user.Address,
+				CreatedAt:      user.CreatedAt,
+			},
 		}
 
 		// Send the response
