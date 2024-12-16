@@ -19,11 +19,19 @@ type OrderRepository interface {
 	UpdateOrderStatus(context context.Context, order_id primitive.ObjectID, is_paid int) (int, error)
 	GetOrderByID(context context.Context, ID primitive.ObjectID) (*domain.Order, error)
 	GetOrdersByCustomerID(context context.Context, CustomerID primitive.ObjectID) ([]*domain.Order, error)
+	DeleteOrder(context context.Context, order_id primitive.ObjectID) error
 }
 
 type orderRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// DeleteOrder implements OrderRepository.
+func (o *orderRepository) DeleteOrder(context context.Context, order_id primitive.ObjectID) error {
+
+	_, err := o.db.Collection(o.collection_name).DeleteOne(context, bson.M{"_id": order_id})
+	return err
 }
 
 func (o *orderRepository) GetOrdersByCustomerID(ctx context.Context, CustomerID primitive.ObjectID) ([]*domain.Order, error) {

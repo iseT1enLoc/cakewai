@@ -49,4 +49,5 @@ type OrderUsecase interface {
 	UpdateOrderPaymentStatus(context context.Context, order_id primitive.ObjectID, is_paid int) (int, error)
 	GetOrderByID(context context.Context, ID primitive.ObjectID) (*Order, error)
 	GetOrdersByCustomerID(context context.Context, CustomerID primitive.ObjectID) ([]*Order, error)
+	DeleteOrder(context context.Context, order_id primitive.ObjectID) error
 }

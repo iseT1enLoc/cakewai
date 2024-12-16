@@ -263,3 +263,35 @@ func (o *OrderHandler) GetOrderByCustomerID() gin.HandlerFunc {
 		})
 	}
 }
+
+func (o *OrderHandler) DeleteOrderByID() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		order_param := ctx.Param("id")
+
+		objID, err := primitive.ObjectIDFromHex(order_param)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error converting order id to object id",
+				Error:   err.Error(),
+			})
+			return
+		}
+		err = o.OrderUsecase.DeleteOrder(ctx, objID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while querying database",
+				Error:   err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully delete order by id",
+			},
+			Data: nil,
+		})
+	}
+}
