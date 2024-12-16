@@ -33,5 +33,6 @@ func NewOrderRoute(Env *appconfig.Env, timeout time.Duration, db *mongo.Database
 	r.GET("/order/cus", order_handler.GetOrderByCustomerID()) //DONE
 	r.POST("/order", order_handler.CreatOrderHandler())       //DONE
 	r.PUT("/order/update", order_handler.UpdateOrder())
+	r.DELETE("/order/:id", order_handler.DeleteOrderByID())
 	r.PATCH("/order/paystatus", order_handler.UpdateOrderStatus()) //DONE
 }
