@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/exp/rand"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,11 +25,61 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *domain.User) error
 	DeleteUser(ctx context.Context, userId string) error
 	UpdateUserPassword(ctx context.Context, userId primitive.ObjectID, currentPassword string, newPassword string) error
+	HandleForgotPassword(ctx context.Context, email string) (*string, *string, error)
 }
 
 type userRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// HandleForgotPassword implements UserRepository.
+func (u *userRepository) HandleForgotPassword(ctx context.Context, email string) (*string, *string, error) {
+	// Set a timeout for the operation
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel() // Ensure resources are released
+
+	var fuser domain.User
+	collection := u.db.Collection(u.collection_name)
+
+	// Query the database to find the user by email
+	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&fuser)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Printf("No user found with email: %s", email)
+			return nil, nil, fmt.Errorf("no user found with email: %s", email)
+		}
+		log.Printf("Failed to fetch user with Email: %s, error: %v", email, err)
+		return nil, nil, err
+	}
+
+	// Generate a random 8-digit number (for the new password)
+	rand.Seed(uint64(time.Now().Hour())) // Proper seeding for randomness
+	randomNumber := rand.Intn(90000000) + 10000000
+
+	// Encrypt the random number to use as the new password
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("%d", randomNumber)), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Failed to hash password: %v", err)
+		return nil, nil, err
+	}
+
+	// Update the user's password in the database
+	updateFields := bson.M{
+		"$set": bson.M{
+			"password": encryptedPassword,
+		},
+	}
+
+	_, err = collection.UpdateOne(ctx, bson.M{"email": email}, updateFields)
+	if err != nil {
+		log.Printf("Failed to update password for email: %s, error: %v", email, err)
+		return nil, nil, err
+	}
+
+	// Return the generated random password as a string
+	result := fmt.Sprintf("%d", randomNumber)
+	return &fuser.Name, &result, nil
 }
 
 // UpdateUserPassword implements UserRepository.
@@ -71,7 +122,6 @@ func (u *userRepository) UpdateUserPassword(ctx context.Context, userId primitiv
 		bcrypt.DefaultCost,
 	)
 	fuser.Password = string(encryptednewPassword)
-	err = u.UpdateUser(ctx, &fuser)
 
 	updateFields := bson.M{
 		"$set": bson.M{
