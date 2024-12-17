@@ -30,7 +30,6 @@ type Order struct {
 	UpdatedAt      time.Time `json:"update_at" bson:"updated_at"`
 }
 type PaymentReq struct {
-	Order_id    string  `json:"order_id" bson:"order_id"`
 	PaymentInfo Payment `json:"payment_info" bson:"payment_info"`
 }
 type OrderReq struct {
