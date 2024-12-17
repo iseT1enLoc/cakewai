@@ -164,7 +164,16 @@ func (o *OrderHandler) UpdateOrder() gin.HandlerFunc {
 
 func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		order_id := ctx.Param("order_id")
+		reqhexid, err := primitive.ObjectIDFromHex(order_id)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Fail to convert id from objectid",
+				Error:   err.Error(),
+			})
+			return
+		}
 		var req domain.PaymentReq
 		if err := ctx.ShouldBindJSON(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -174,15 +183,7 @@ func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
 			})
 			return
 		}
-		reqhexid, err := primitive.ObjectIDFromHex(req.Order_id)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Fail to convert id from objectid",
-				Error:   err.Error(),
-			})
-			return
-		}
+
 		row_affected, err := o.OrderUsecase.UpdateOrderPaymentStatus(ctx, reqhexid, req.PaymentInfo.IsPaid)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
@@ -199,6 +200,62 @@ func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
 			},
 			Data: gin.H{"row_affected": row_affected},
 		})
+	}
+}
+func (o *OrderHandler) UpdateDiliveryStatus() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		order_id := ctx.Param("order_id")
+		reqhexid, err := primitive.ObjectIDFromHex(order_id)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Fail to convert id from objectid",
+				Error:   err.Error(),
+			})
+			return
+		}
+		type diliverReq struct {
+			ShippingStatus string `json:"shipping_status" bson:"shipping_status" default:"pending"`
+		}
+		var shipping diliverReq
+		if err := ctx.ShouldBindJSON(&shipping); err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing the json request",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		order, err := o.OrderUsecase.GetOrderByID(ctx, reqhexid)
+
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error querying order by id",
+				Error:   err.Error(),
+			})
+			return
+		}
+		order.ShippingStatus = shipping.ShippingStatus
+		_, err = o.OrderUsecase.UpdateOrder(ctx, *order)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Failed to update order shipping status",
+				},
+				Data: nil,
+			})
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully update shipping status",
+			},
+			Data: order,
+		})
+
 	}
 }
 func (o *OrderHandler) GetOrderByID() gin.HandlerFunc {
