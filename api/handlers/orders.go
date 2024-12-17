@@ -162,7 +162,7 @@ func (o *OrderHandler) UpdateOrder() gin.HandlerFunc {
 	}
 }
 
-func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
+func (o *OrderHandler) UpdatePaymentStatus() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		order_id := ctx.Param("order_id")
 		reqhexid, err := primitive.ObjectIDFromHex(order_id)
@@ -258,6 +258,63 @@ func (o *OrderHandler) UpdateDiliveryStatus() gin.HandlerFunc {
 
 	}
 }
+func (o *OrderHandler) UpdateOrderStatus() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		order_id := ctx.Param("order_id")
+		reqhexid, err := primitive.ObjectIDFromHex(order_id)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Fail to convert id from objectid",
+				Error:   err.Error(),
+			})
+			return
+		}
+		type orderstatusReq struct {
+			OrderStatus string `json:"order_status" bson:"order_status" default:"pending"`
+		}
+		var status_req orderstatusReq
+		if err := ctx.ShouldBindJSON(&status_req); err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing the json request",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		order, err := o.OrderUsecase.GetOrderByID(ctx, reqhexid)
+
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error querying order by id",
+				Error:   err.Error(),
+			})
+			return
+		}
+		order.OrderStatus = status_req.OrderStatus
+		_, err = o.OrderUsecase.UpdateOrder(ctx, *order)
+		if err != nil {
+			ctx.JSON(http.StatusOK, response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "Failed to update order status",
+				},
+				Data: nil,
+			})
+		}
+		ctx.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    http.StatusOK,
+				Message: "Successfully update order status",
+			},
+			Data: order,
+		})
+
+	}
+}
+
 func (o *OrderHandler) GetOrderByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		order_param := ctx.Param("order_id")
