@@ -32,6 +32,7 @@ func NewEventBlogRepository(db *mongo.Database, collection_name string) EventBlo
 
 // CreateEventBlog creates a new event blog entry
 func (r *eventBlogRepository) CreateEventBlog(ctx context.Context, eventBlog domain.EventBlog) (*domain.EventBlog, error) {
+	eventBlog.Id = primitive.NewObjectID()
 	collection := r.db.Collection(r.collection_name)
 	result, err := collection.InsertOne(ctx, eventBlog)
 	if err != nil {
@@ -86,6 +87,7 @@ func (r *eventBlogRepository) UpdateEventBlog(ctx context.Context, eventBlog dom
 			"title":             eventBlog.Title,
 			"short_description": eventBlog.ShortDescription,
 			"created_at":        eventBlog.CreatedAt,
+			"author":            eventBlog.Author,
 		},
 	})
 	if err != nil {
