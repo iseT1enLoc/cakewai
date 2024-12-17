@@ -23,11 +23,64 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, user *domain.User) (*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
 	DeleteUser(ctx context.Context, userId string) error
+	UpdateUserPassword(ctx context.Context, userId primitive.ObjectID, currentPassword string, newPassword string) error
 }
 
 type userRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// UpdateUserPassword implements UserRepository.
+func (u *userRepository) UpdateUserPassword(ctx context.Context, userId primitive.ObjectID, currentPassword string, newPassword string) error {
+	// Set a timeout for the operation
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel() // Ensure resources are released
+
+	collection := u.db.Collection(u.collection_name)
+
+	// Convert the string ID to a MongoDB ObjectID
+	ObjectID, err := primitive.ObjectIDFromHex(userId.Hex())
+	if err != nil {
+		log.Printf("Invalid ID format: %s, error: %v", userId, err)
+		return err
+	}
+
+	// Define a variable to hold the result
+	var fuser domain.User
+
+	// Query the database
+	err = collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&fuser)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Printf("No user found with ID: %s", userId)
+			return err
+		}
+		log.Printf("Failed to fetch user with ID: %s, error: %v", userId, err)
+		return err
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(fuser.Password), []byte(currentPassword)); err != nil {
+
+		err = errors.New("Invalid current password")
+		return err
+	}
+	encryptednewPassword, err := bcrypt.GenerateFromPassword(
+		[]byte(newPassword),
+		bcrypt.DefaultCost,
+	)
+	fuser.Password = string(encryptednewPassword)
+	err = u.UpdateUser(ctx, &fuser)
+
+	updateFields := bson.M{
+		"$set": bson.M{
+			"password": encryptednewPassword,
+		},
+	}
+
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": userId}, updateFields)
+	return err
 }
 
 // DeleteUser implements UserRepository.

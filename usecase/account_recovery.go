@@ -13,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -55,20 +57,27 @@ type accountRecovery struct {
 // 		return fmt.Errorf("user_id claim missing or invalid")
 // 	}
 
-// 	user, _ := a.user_repo.GetUserById(ctx, userID)
-// 	encryptedPassword, _ := bcrypt.GenerateFromPassword(
-// 		[]byte(new_password),
-// 		bcrypt.DefaultCost,
-// 	)
-// 	user.Password = string(encryptedPassword)
-// 	err = a.user_repo.UpdateUser(ctx, user)
-// 	// Token validated; proceed with password reset flow
-// 	// Example: Allow user to reset the password (implement logic as needed)
-// 	if err != nil {
-// 		return fmt.Errorf("user_id claim missing or invalid")
-// 	}
-// 	return nil
-// }
+//		user, _ := a.user_repo.GetUserById(ctx, userID)
+//		encryptedPassword, _ := bcrypt.GenerateFromPassword(
+//			[]byte(new_password),
+//			bcrypt.DefaultCost,
+//		)
+//		user.Password = string(encryptedPassword)
+//		err = a.user_repo.UpdateUser(ctx, user)
+//		// Token validated; proceed with password reset flow
+//		// Example: Allow user to reset the password (implement logic as needed)
+//		if err != nil {
+//			return fmt.Errorf("user_id claim missing or invalid")
+//		}
+//		return nil
+//	}
+//
+
+// ChangesPassword implements domain.AccountRecovery.
+func (a *accountRecovery) ChangesPassword(ctx context.Context, env *appconfig.Env, userId primitive.ObjectID, currentPassword string, newPassword string) error {
+	err := a.user_repo.UpdateUserPassword(ctx, userId, currentPassword, newPassword)
+	return err
+}
 
 func (a *accountRecovery) ResetPasswordProcessing(ctx context.Context, env *appconfig.Env, new_password string, token string) error {
 

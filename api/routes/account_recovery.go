@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func NewAccountRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Database, r *gin.RouterGroup) {
+func NewAccountRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Database, r *gin.RouterGroup, p *gin.RouterGroup) {
 	user_repo := repository.NewUserRepository(db, "users")
 	acc_recover_handler := handlers.AccountRecoveryHandler{
 		Acc_recover_usecase: usecase.NewAccountRecovery(user_repo, timout),
@@ -20,4 +20,5 @@ func NewAccountRoute(Env *appconfig.Env, timout time.Duration, db *mongo.Databas
 
 	r.POST("/request-password-reset", acc_recover_handler.ResetPasswordRequest())
 	r.POST("/reset-password", acc_recover_handler.ResetPasswordProcessing())
+	p.POST("/account-recover/update-password", acc_recover_handler.ChangesPassword())
 }
