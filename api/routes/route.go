@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"cakewai/cakewai.com/api/handlers"
 	"cakewai/cakewai.com/api/middlewares"
 	appconfig "cakewai/cakewai.com/component/appcfg"
 	"cakewai/cakewai.com/service"
 	"net/http"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,7 +36,11 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	protectedRoute.GET("/gg", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
-
+	geminihandler := handlers.GeminiHandler{
+		ApiKey: os.Getenv("GEMINI_API_KEY"),
+		Model:  "",
+	}
+	protectedRoute.POST("/translate", geminihandler.GenerateFineGrainPrompt())
 	r.GET("/admin", middlewares.JwtAuthMiddleware(env.ACCESS_SECRET), middlewares.AdminMiddleware(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
