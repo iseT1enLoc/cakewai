@@ -176,10 +176,11 @@ func (gen *GeminiHandler) GenerateFineGrainPrompt() gin.HandlerFunc {
 		// 		geminiOutput,
 		// )
 		fineGrainPrompt := fmt.Sprintf(
-			"Role: You are a skilled cake artist with experience in creating detailed, customized cakes. " +
-				"Please generate a high-resolution image of a cake based on this user input: '%s'. " +
-				geminiOutput,
-		)
+			"Role: You are a skilled cakes shop owner. " +
+				"Please generate an image of a single cake based on this user input: " + geminiOutput +
+				"The cake should be modern, elegant, and creative, with a clean background that highlights the cake's details, " +
+				"ensuring it is visually appealing and ready for the user to choose.")
+		println(fineGrainPrompt)
 		// Prepare the request payload for the image generation API
 		requestBody := map[string]interface{}{
 			"input": fineGrainPrompt,
