@@ -57,7 +57,7 @@ func (gen *GeminiHandler) GenerateFineGrainPrompt() gin.HandlerFunc {
 
 		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
-				Code:    0,
+				Code:    200,
 				Message: "Successfully translate user input",
 			},
 			Data: finegrain_prompt,

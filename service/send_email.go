@@ -9,26 +9,30 @@ import (
 )
 
 // SendPasswordRecoveryEmail sends the email with a password recovery link
-func SendPasswordRecoveryEmail(senderName, senderEmail, receiverName, receiverEmail string, resetToken string, reset_link string) error {
+func SendPasswordRecoveryEmail(senderName, senderEmail, receiverName, receiverEmail string, new_password string) error {
 	// Sender and recipient details
 	from := mail.NewEmail(senderName, senderEmail)
 	to := mail.NewEmail(receiverName, receiverEmail)
 
 	// Email subject and content
-	subject := "Password recover"
-	plainTextContent := fmt.Sprintf("Hi %s,\n\nWe received a request to reset your password. Please click the link below to reset your password:\n\n%s\n\nIf you did not request a password reset, please ignore this email.\n\nBest regards,\nYour App Team", receiverName, reset_link)
+	// Email subject and content
+	subject := "Khôi phục mật khẩu - Mật khẩu mới"
+	plainTextContent := fmt.Sprintf("Chào %s,\n\nChúng tôi nhận được yêu cầu đặt lại mật khẩu của bạn. Mật khẩu mới của bạn là: %s\n\nVui lòng giữ nó an toàn. Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.\n\nTrân trọng,\nNhóm Cakewai", receiverName, new_password)
+
+	// HTML email content with the new password
 	htmlContent := fmt.Sprintf(`
-		<!DOCTYPE html>
-		<html>
-		<body>
-			<p>Hi %s,</p>
-			<p>We received a request to reset your password. Please click the link below to reset your password:</p>
-			<a href="%s">Reset Password</a>
-			<p>If you did not request a password reset, please ignore this email.</p>
-			<p>Best regards,<br> <strong>Cakewai Team</strong></p>
-		</body>
-		</html>
-	`, receiverName, reset_link)
+	<!DOCTYPE html>
+	<html>
+	<body>
+	    <p>CỬA HÀNG BÁN BÁNH CAKEWAI</p>
+		<p>Chào %s,</p>
+		<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu của bạn. Mật khẩu mới của bạn là:</p>
+		<p><strong>%s</strong></p>
+		<a href = "http://localhost:5173">Đăng nhập lại tại đây!<a>
+		<p>Trân trọng,<br> <strong>Cửa hàng Cakewai</strong></p>
+	</body>
+	</html>
+`, receiverName, new_password)
 
 	// Create the email message
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)

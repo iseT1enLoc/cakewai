@@ -302,6 +302,7 @@ func (p *productRepository) UpdateProductById(ctx context.Context, id primitive.
 	res, err := collection.UpdateByID(c, id, bson.M{
 		"$set": bson.M{
 			"product_name":    updatedProduct.ProductName,
+			"product_type_id": updatedProduct.ProductTypeID,
 			"description":     updatedProduct.Description,
 			"image_link":      updatedProduct.ImageLink,
 			"product_variant": updatedProduct.Variant,

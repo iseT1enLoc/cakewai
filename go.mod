@@ -17,6 +17,7 @@ require (
 	github.com/ydb-platform/ydb-go-sdk/v3 v3.81.4
 	go.mongodb.org/mongo-driver v1.17.1
 	golang.org/x/crypto v0.27.0
+	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	golang.org/x/oauth2 v0.23.0
 	google.golang.org/genai v0.0.0-20241214000312-5d5bfe7ddda0
 )
