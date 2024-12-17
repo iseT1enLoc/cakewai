@@ -45,12 +45,22 @@ func (gen *GeminiHandler) GenerateFineGrainPrompt() gin.HandlerFunc {
 				Error:   err.Error(),
 			})
 		}
+		finegrain_prompt := fmt.Sprintf(
+			"Role: You are an experienced cake maker with years of expertise in creating beautifully customized cakes tailored to clients' requests. "+
+				"Task: Generate a high-resolution image of a customized cake based on the following user input: '%s'. "+
+				"The cake should have intricate details such as realistic textures, smooth icing, and vibrant colors. "+
+				"Consider incorporating creative design elements such as edible flowers, custom decorations, and personalized messages. "+
+				"The style should reflect an elegant and modern aesthetic, ensuring the cake looks both delicious and visually stunning. "+
+				"Ensure the lighting and shadows in the image highlight the cake's details, making it appear as realistic as possible. "+
+				"The background should be simple and clean to keep the focus on the cake, with soft lighting to emphasize its texture and color.",
+			gemini_output)
+
 		ctx.JSON(http.StatusOK, response.Success{
 			ResponseFormat: response.ResponseFormat{
 				Code:    0,
 				Message: "Successfully translate user input",
 			},
-			Data: gemini_output,
+			Data: finegrain_prompt,
 		})
 	}
 }
