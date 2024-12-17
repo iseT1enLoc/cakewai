@@ -40,7 +40,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 		ApiKey: os.Getenv("GEMINI_API_KEY"),
 		Model:  "",
 	}
-	protectedRoute.POST("/translate", geminihandler.GenerateFineGrainPrompt())
+	protectedRoute.POST("/generate-image", geminihandler.GenerateFineGrainPrompt())
 	r.GET("/admin", middlewares.JwtAuthMiddleware(env.ACCESS_SECRET), middlewares.AdminMiddleware(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
