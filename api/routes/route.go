@@ -32,6 +32,7 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewOrderRoute(env, timeout, db, protectedRoute)
 	NewProductTypeRoute(env, timeout, db, publicRoute)
 	NewLogoutRoute(env, timeout, db, publicRoute)
+	NewEventBlogRoute(env, timeout, db, publicRoute)
 	r.POST("/api/upload", service.UploadCloud())
 	protectedRoute.GET("/gg", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
