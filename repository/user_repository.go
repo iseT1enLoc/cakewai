@@ -54,7 +54,7 @@ func (u *userRepository) HandleForgotPassword(ctx context.Context, email string)
 	}
 
 	// Generate a random 8-digit number (for the new password)
-	rand.Seed(uint64(time.Now().Hour())) // Proper seeding for randomness
+	rand.Seed(uint64(time.Now().Second())) // Proper seeding for randomness
 	randomNumber := rand.Intn(90000000) + 10000000
 
 	// Encrypt the random number to use as the new password

@@ -397,3 +397,39 @@ func (pc *ProductHandler) SearchProducts() gin.HandlerFunc {
 		})
 	}
 }
+func (pc *ProductHandler) FilterProduct() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		ctx := c.Request.Context()
+
+		// Extract query parameters
+		sortField := c.Query("field") // Field to sort by (e.g., "variant.price" or "product_name")
+		sortOrder := c.Query("order") // Sort order ("asc" or "desc")
+
+		// Validate query parameters
+		if sortField == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "field parameter is required"})
+			return
+		}
+		if sortOrder != "asc" && sortOrder != "desc" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order parameter. Use 'asc' or 'desc'."})
+			return
+		}
+
+		// Fetch sorted products from the usecase
+		products, err := pc.ProductUsecase.FetchSortedProducts(ctx, sortField, sortOrder)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Respond with the sorted products
+		c.JSON(http.StatusOK, response.Success{
+			ResponseFormat: response.ResponseFormat{
+				Code:    200,
+				Message: "Successfully get sorted products list",
+			},
+			Data: products,
+		})
+	}
+}
