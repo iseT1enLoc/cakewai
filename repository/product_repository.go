@@ -45,10 +45,60 @@ type ProductRepository interface {
 
 	//Search product
 	SearchProduct(ctx context.Context, query string, type_id string, variant string) ([]*domain.Product, error)
+
+	//Fetch sorted products
+	FetchSortedProducts(ctx context.Context, sortField string, sortOrder string) ([]*domain.Product, error)
 }
 type productRepository struct {
 	db              *mongo.Database
 	collection_name string
+}
+
+// FetchSortedProducts implements ProductRepository.
+func (p *productRepository) FetchSortedProducts(ctx context.Context, sortField string, sortOrder string) ([]*domain.Product, error) {
+	collection := p.db.Collection("products")
+
+	// Determine sort order
+	order := 1
+	if sortOrder == "desc" {
+		order = -1
+	}
+
+	var pipeline []bson.M
+
+	// Check if sorting by variant field, specifically the first variant's price
+	if sortField == "variant.price" {
+		pipeline = []bson.M{
+			// Add a new field with the price of the first variant (index 0) for sorting
+			{"$addFields": bson.M{
+				"first_variant_price": bson.M{
+					"$arrayElemAt": []interface{}{"$product_variant.price", 0},
+				},
+			}},
+			// Sort by the new field (first variant's price)
+			{"$sort": bson.M{"first_variant_price": order}},
+		}
+	} else {
+		// Default sort by the main product fields
+		pipeline = []bson.M{
+			{"$sort": bson.M{sortField: order}},
+		}
+	}
+
+	// Perform aggregation
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate products: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results into a slice of Product
+	var products []*domain.Product
+	if err := cursor.All(ctx, &products); err != nil {
+		return nil, fmt.Errorf("failed to decode products: %w", err)
+	}
+
+	return products, nil
 }
 
 // SearchProduct implements ProductRepository.

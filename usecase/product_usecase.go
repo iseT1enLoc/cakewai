@@ -4,6 +4,7 @@ import (
 	"cakewai/cakewai.com/domain"
 	"cakewai/cakewai.com/repository"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -14,6 +15,22 @@ import (
 type productUsecase struct {
 	repository repository.ProductRepository
 	timeout    time.Duration
+}
+
+// FetchSortedProducts implements domain.ProductUsecase.
+func (p *productUsecase) FetchSortedProducts(ctx context.Context, sortField string, sortOrder string) ([]*domain.Product, error) {
+	// Validate sortField and sortOrder
+	if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, fmt.Errorf("invalid sortOrder: %s", sortOrder)
+	}
+
+	// Delegate to the repository
+	products, err := p.repository.FetchSortedProducts(ctx, sortField, sortOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }
 
 // SearchProducts implements domain.ProductUsecase.
