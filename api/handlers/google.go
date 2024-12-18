@@ -97,11 +97,7 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		//utils.SetCookie(c.Writer, "access_token", accessToken,false)
 		//utils.SetCookie(c.Writer, "refresh_token", refreshToken,true)
 
-		// c.JSON(http.StatusOK, response.Success{
-		// 	ResponseFormat: response.ResponseFormat{
-		// 		Code:    http.StatusOK,
-		// 		Message: "Successfully login with google",
-		// 	},
+		//c.JSON(http.StatusOK, gin.H{"info": "user data"})
 
 		// 	Data:loginggresponse,
 		// })
