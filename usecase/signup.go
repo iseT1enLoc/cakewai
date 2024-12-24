@@ -48,8 +48,9 @@ func (s *signupUseCase) SignUp(ctx context.Context, request domain.SignupRequest
 		Name:      request.Name,
 		Password:  request.Password,
 		Email:     request.Email,
-		RoleID:    request.RoleID,
 		CreatedAt: time.Now(),
+		IsAdmin:   false,
+		RoleID:    request.RoleID,
 	}
 
 	user, err = s.userRepository.CreateUser(ctx, user)

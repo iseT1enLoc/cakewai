@@ -41,6 +41,7 @@ type UserResponse struct {
 	Name           string             `json:"name" bson:"name"`
 	Email          string             `json:"email" bson:"email"`
 	Phone          string             `json:"phone" bson:"phone"`
+	IsAdmin        bool               `json:"is_admin" bson:"is_admin,omitempty"  default:"false"`
 	Address        Address            `json:"address" bson:"address"`
 	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
 }
