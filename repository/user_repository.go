@@ -44,6 +44,7 @@ func (u *userRepository) HandleForgotPassword(ctx context.Context, email string)
 
 	// Query the database to find the user by email
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&fuser)
+	fmt.Printf("print user role is_admin %v\n", fuser.IsAdmin)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			log.Printf("No user found with email: %s", email)
@@ -215,6 +216,7 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 
 	// Perform the query
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	log.Printf("User is admin? %v", user.IsAdmin)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			// Handle case where no user is found

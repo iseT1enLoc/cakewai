@@ -50,7 +50,7 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 			RefreshToken string               `json:"refresh_token"`
 			User         *domain.UserResponse `json:"user"`
 		}
-
+		fmt.Println("Login user admin? %v", user.IsAdmin)
 		// Construct the response
 		res := loginUserResponse{
 			AccessToken:  accessToken,
@@ -62,6 +62,7 @@ func (li *LoginHandler) LoginHandler() gin.HandlerFunc {
 				Name:           user.Name,
 				Email:          user.Email,
 				Phone:          user.Phone,
+				IsAdmin:        user.IsAdmin,
 				Address:        user.Address,
 				CreatedAt:      user.CreatedAt,
 			},
