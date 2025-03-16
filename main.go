@@ -36,8 +36,8 @@ func main() {
 	// r.GET("/", func(ctx *gin.Context) {
 	// 	ctx.JSON(http.StatusOK, gin.H{"data": "hello everyone, welcome to my chanel"})
 	// })
-	r.Run("localhost:8080")
-	//r.Run()
+	//r.Run("localhost:8080")
+	r.Run()
 
 }
 
