@@ -22,6 +22,7 @@ func main() {
 	}
 	fmt.Print("Line 22")
 	client, err := mongodb.ConnectWithMongodb(appcfg)
+	print(err)
 	if err != nil {
 		log.Fatalf("Error happened while connect to database %v", err)
 	}

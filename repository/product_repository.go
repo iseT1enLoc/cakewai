@@ -288,10 +288,10 @@ func (p *productRepository) DeleteProductById(ctx context.Context, id primitive.
 
 // GetAllProducts implements ProductRepository.
 func (p *productRepository) GetAllProducts(ctx context.Context) ([]*domain.Product, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	//ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
 	collection := p.db.Collection(p.collection_name)
 
-	defer cancel()
+	//defer cancel()
 	curprod, err := collection.Find(ctx, bson.D{})
 	if err != nil {
 		log.Error(err)

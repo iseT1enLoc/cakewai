@@ -202,7 +202,8 @@ func (gen *GeminiHandler) GenerateFineGrainPrompt() gin.HandlerFunc {
 		}
 
 		// Define the API URL and set headers
-		apiURL := "https://api.claid.ai/v1-beta1/image/generate"
+		//apiURL := "https://api.claid.ai/v1-beta1/image/generate"
+		apiURL := "http://localhost:5050/api/v1/generate-cake-image"
 		req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
@@ -266,5 +267,20 @@ func (gen *GeminiHandler) GenerateFineGrainPrompt() gin.HandlerFunc {
 				Error:   "Output data not found",
 			})
 		}
+	}
+}
+func (gen *GeminiHandler) GeminiHandlerNew() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var data Prompt
+		if err := ctx.ShouldBindJSON(&data); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "nothing interesting"})
+			return
+		}
+		res, err := service.GenImageRequest(ctx, data.Text)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "nothing interesting"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"data": res})
 	}
 }

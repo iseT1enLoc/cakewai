@@ -175,6 +175,7 @@ func (pc *ProductHandler) DeleteProductById() gin.HandlerFunc {
 func (pc *ProductHandler) GetAllProducts() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		productlist, err := pc.ProductUsecase.GetAllProducts(ctx)
+		print(err)
 		if err != nil {
 			log.Error(err)
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{

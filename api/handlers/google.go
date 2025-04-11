@@ -5,6 +5,7 @@ import (
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -106,7 +107,9 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		fmt.Print("redirect")
 		//redirectURL := "http://localhost:5173/home?accesstoken=" + accessToken + "refrestoken=" + refreshToken
 		//redirectURL := "http://localhost:5173/home"
-		c.Redirect(http.StatusPermanentRedirect, "http://localhost:5173/?token="+accessToken+"&refreshToken="+refreshToken)
+
+		front_end := os.Getenv("FRONT_END")
+		c.Redirect(http.StatusPermanentRedirect, front_end+"/?token="+accessToken+"&refreshToken="+refreshToken)
 
 	}
 }
