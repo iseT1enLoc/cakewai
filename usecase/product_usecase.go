@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"cakewai/cakewai.com/domain"
+	"cakewai/cakewai.com/internals/utils"
 	"cakewai/cakewai.com/repository"
 	"context"
 	"fmt"
@@ -15,6 +16,23 @@ import (
 type productUsecase struct {
 	repository repository.ProductRepository
 	timeout    time.Duration
+}
+
+// GetProductBySlug implements domain.ProductUsecase.
+func (p *productUsecase) GetProductBySlug(ctx context.Context, slug string) (*domain.Product, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+	prodlist, err := p.repository.GetAllProducts(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(prodlist); i = i + 1 {
+		if utils.Slugify(prodlist[i].ProductName) == slug {
+			return prodlist[i], nil
+		}
+	}
+	return nil, err
 }
 
 // FetchSortedProducts implements domain.ProductUsecase.

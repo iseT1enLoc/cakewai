@@ -123,7 +123,7 @@ func (a *AccountRecoveryHandler) ChangesPassword() gin.HandlerFunc {
 			})
 			return
 		}
-		fmt.Println("\n")
+
 		fmt.Println(existingPassword.CurrentPassword)
 		fmt.Println(existingPassword.NewPassword)
 		err = a.Acc_recover_usecase.ChangesPassword(ctx, a.Env, objhex, existingPassword.CurrentPassword, existingPassword.NewPassword)

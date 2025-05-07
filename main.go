@@ -22,6 +22,7 @@ func main() {
 	}
 	fmt.Print("Line 22")
 	client, err := mongodb.ConnectWithMongodb(appcfg)
+	print(err)
 	if err != nil {
 		log.Fatalf("Error happened while connect to database %v", err)
 	}
@@ -36,8 +37,8 @@ func main() {
 	// r.GET("/", func(ctx *gin.Context) {
 	// 	ctx.JSON(http.StatusOK, gin.H{"data": "hello everyone, welcome to my chanel"})
 	// })
-	r.Run("localhost:8080")
-	//r.Run()
+	//r.Run("localhost:8080")
+	r.Run()
 
 }
 

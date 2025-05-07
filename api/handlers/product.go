@@ -6,6 +6,7 @@ import (
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -175,6 +176,7 @@ func (pc *ProductHandler) DeleteProductById() gin.HandlerFunc {
 func (pc *ProductHandler) GetAllProducts() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		productlist, err := pc.ProductUsecase.GetAllProducts(ctx)
+		print(err)
 		if err != nil {
 			log.Error(err)
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse{
@@ -430,6 +432,52 @@ func (pc *ProductHandler) FilterProduct() gin.HandlerFunc {
 				Message: "Successfully get sorted products list",
 			},
 			Data: products,
+		})
+	}
+}
+
+func (pc *ProductHandler) GetProductByProductSlug() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		slug := ctx.Param("slug")
+
+		// Validate: not empty and matches allowed pattern
+		if slug == "" {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Slug is required.",
+			})
+			return
+		}
+
+		// Optional: regex to ensure it's a valid slug
+		matched, _ := regexp.MatchString(`^[a-z0-9-]+$`, slug)
+		if !matched {
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid slug format. Only lowercase letters, numbers, and hyphens are allowed.",
+			})
+			return
+		}
+
+		prod, err := pc.ProductUsecase.GetProductBySlug(ctx, slug)
+		if err != nil {
+			log.Error(err)
+			ctx.JSON(http.StatusBadRequest, response.FailedResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error happened while querying database.",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.SuccessResponse{
+			Success: response.Success{
+				ResponseFormat: response.ResponseFormat{
+					Code:    http.StatusOK,
+					Message: "",
+				},
+				Data: prod,
+			},
 		})
 	}
 }

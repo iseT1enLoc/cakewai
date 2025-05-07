@@ -34,15 +34,18 @@ func SetUp(env *appconfig.Env, timeout time.Duration, db *mongo.Database, r *gin
 	NewLogoutRoute(env, timeout, db, publicRoute)
 	NewEventBlogRoute(env, timeout, db, publicRoute)
 	r.POST("/api/upload", service.UploadCloud())
-	protectedRoute.GET("/gg", func(ctx *gin.Context) {
+	publicRoute.GET("/gg", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
 	geminihandler := handlers.GeminiHandler{
 		ApiKey: os.Getenv("GEMINI_API_KEY"),
 		Model:  "",
 	}
-	protectedRoute.POST("/generate-image", geminihandler.GenerateFineGrainPrompt())
+	protectedRoute.POST("/generate-image", geminihandler.GenerateFineGrainPromptWithNebius())
+	publicRoute.POST("/generate-image-v2", geminihandler.GenerateFineGrainPromptWithNebius())
+	publicRoute.POST("/generate-image-v1", geminihandler.GeminiHandlerNew())
 	r.GET("/admin", middlewares.JwtAuthMiddleware(env.ACCESS_SECRET), middlewares.AdminMiddleware(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"success": "data"})
 	})
+
 }

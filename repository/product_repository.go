@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cakewai/cakewai.com/domain"
+	"cakewai/cakewai.com/internals/utils"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 
@@ -288,10 +289,10 @@ func (p *productRepository) DeleteProductById(ctx context.Context, id primitive.
 
 // GetAllProducts implements ProductRepository.
 func (p *productRepository) GetAllProducts(ctx context.Context) ([]*domain.Product, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	//ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
 	collection := p.db.Collection(p.collection_name)
 
-	defer cancel()
+	//defer cancel()
 	curprod, err := collection.Find(ctx, bson.D{})
 	if err != nil {
 		log.Error(err)
@@ -305,7 +306,7 @@ func (p *productRepository) GetAllProducts(ctx context.Context) ([]*domain.Produ
 		if err != nil {
 			return nil, err
 		}
-
+		product.Slug = utils.Slugify(product.ProductName)
 		prodlist = append(prodlist, &product)
 
 	}
