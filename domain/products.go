@@ -38,6 +38,7 @@ type ProductUsecase interface {
 	// Get product by ID
 	GetProductById(ctx context.Context, id primitive.ObjectID) (*Product, error)
 
+	GetProductBySlug(ctx context.Context, slug string) (*Product, error)
 	// Get all products
 	GetAllProducts(ctx context.Context) ([]*Product, error)
 
