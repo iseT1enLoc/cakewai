@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cakewai/cakewai.com/domain"
+	"cakewai/cakewai.com/internals/utils"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 
@@ -305,7 +306,7 @@ func (p *productRepository) GetAllProducts(ctx context.Context) ([]*domain.Produ
 		if err != nil {
 			return nil, err
 		}
-
+		product.Slug = utils.Slugify(product.ProductName)
 		prodlist = append(prodlist, &product)
 
 	}

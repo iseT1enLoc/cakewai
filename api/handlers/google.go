@@ -5,7 +5,6 @@ import (
 	"cakewai/cakewai.com/domain"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
@@ -22,7 +21,7 @@ type GoogleController struct {
 
 // "http://localhost:8080/api/public/google/callback",
 var googleOauthConfig = &oauth2.Config{
-	RedirectURL: "http://localhost:8080/api/public/google/callback",
+	RedirectURL: "https://www.cakewaibackend.id.vn/api/public/google/callback",
 	Scopes: []string{
 		"https://www.googleapis.com/auth/userinfo.profile",
 		"https://www.googleapis.com/auth/userinfo.email",
@@ -32,6 +31,7 @@ var googleOauthConfig = &oauth2.Config{
 
 func (gc *GoogleController) HandleGoogleLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println(c.Request.URL.RequestURI())
 		fmt.Println("Line 35")
 		// Generate OAuth state and set it in the cookie
 		oauthState := gc.GoogleUseCase.GenerateStateOauthCookie(c.Writer)
@@ -49,6 +49,8 @@ func (gc *GoogleController) HandleGoogleLogin() gin.HandlerFunc {
 }
 func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println(c.Request.URL.RequestURI())
+
 		//redirectURL := os.Getenv("redirect")
 		fmt.Println("Enter google callback handler")
 		googleOauthConfig.ClientSecret = gc.Env.GOOGLE_CLIENT_SECRET
@@ -108,8 +110,8 @@ func (gc *GoogleController) HandleGoogleCallback() gin.HandlerFunc {
 		//redirectURL := "http://localhost:5173/home?accesstoken=" + accessToken + "refrestoken=" + refreshToken
 		//redirectURL := "http://localhost:5173/home"
 
-		front_end := os.Getenv("FRONT_END")
-		c.Redirect(http.StatusPermanentRedirect, front_end+"/?token="+accessToken+"&refreshToken="+refreshToken)
+		//front_end := os.Getenv("FRONT_END")
+		c.Redirect(http.StatusPermanentRedirect, "https://cakewaitown.com/?token="+accessToken+"&refreshToken="+refreshToken)
 
 	}
 }

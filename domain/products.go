@@ -10,6 +10,7 @@ import (
 type Product struct {
 	ProductId     primitive.ObjectID `json:"_id" bson:"_id"`
 	ProductName   string             `json:"product_name" bson:"product_name"`
+	Slug          string             `json:"slug"`
 	Description   string             `json:"description" bson:"description"`
 	ImageLink     string             `json:"image_link" bson:"image_link"`
 	ProductTypeID string             `json:"product_type_id" bson:"product_type_id"`
