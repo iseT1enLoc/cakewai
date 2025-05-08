@@ -20,6 +20,7 @@ Built using a clean modular architecture with **Gin**, **MongoDB**, **Cloudinary
 - 📁 Modular folder structure
 - 🌱 Environment-based configuration
 - 🛠️ Unit Testing support
+- 🔑 Google OAuth (Login with Google)
 - 📄 Swagger/OpenAPI support (optional)
 - 🐳 Docker-ready
 - 🌍 Deployable on [**DigitalOcean**](https://www.digitalocean.com/)
