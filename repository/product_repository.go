@@ -161,6 +161,9 @@ func (p *productRepository) GetProductByProductTypeID(ctx context.Context, id st
 	fmt.Println("LINE 60 GET PRODUCT BY PRODUCT TYPE ID")
 
 	err = cur.All(ctx, &products)
+	for i := 0; i < len(products); i = i + 1 {
+		products[i].Slug = utils.Slugify(products[i].ProductName)
+	}
 	if err != nil {
 		log.Error(err)
 		return nil, err
