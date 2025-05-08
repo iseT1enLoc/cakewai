@@ -4,6 +4,8 @@ This project is a RESTful backend API built using **Golang**, designed for an e-
 
 Built using a clean modular architecture with **Gin**, **MongoDB**, **Cloudinary**, and **Hugging Face**, this backend is ready for production and scalable deployments.
 
+![CakeWai Town](media/homepage.png)
+
 
 ---
 
