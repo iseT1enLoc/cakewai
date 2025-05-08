@@ -48,7 +48,7 @@ Cakewai includes smart features to **boost sales and user engagement**:
 ---
 
 ## 📁 Project Structure
-
+```bash
 cakewai/
 ├── api/                      # API layer (controllers, routing, middleware)
 │   ├── handlers/             # Request handlers
