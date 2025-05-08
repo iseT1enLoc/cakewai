@@ -79,7 +79,7 @@ cakewai/
 ├── go.sum                    # Go dependency checksums
 └── README.md                 # This file
 
-
+---
 ## 📦 Installation & Run (Local)
 
 ```bash
