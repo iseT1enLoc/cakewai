@@ -48,35 +48,36 @@ Cakewai includes smart features to **boost sales and user engagement**:
 ---
 
 ## 📁 Project Structure
+
 cakewai/
-├── api/                      # Main entry point(s) for the app
-│   └── handlers               # Starts the server
-│   └── middlewares               # Starts the server
-│   └── routes               # Starts the server
+├── api/                      # API layer (controllers, routing, middleware)
+│   ├── handlers/             # Request handlers
+│   ├── middlewares/          # Authentication, logging, CORS, etc.
+│   └── routes/               # Route definitions
 │
-├── domain/                   # data model
+├── domain/                   # Domain models (schemas, DTOs)
 │
-├── infras/                   # Database
-│   └── mongo
+├── infras/                   # Infrastructure (database connections, external services)
+│   └── mongo/                # MongoDB setup and connection utilities
 │
-├── internals                 
-│   └── token_utils
-│   └── utils
+├── internals/                # Internal utility packages
+│   ├── token_utils/          # JWT generation and verification
+│   └── utils/                # Helper functions
 │
-├── repository                #repository layer
+├── repository/               # Data access layer
 │
-├── services/                 # Business logic, separate from controllers
+├── services/                 # Business logic layer
 │
-├── usecase/                  # business implement
+├── usecase/                  # Application use cases (orchestrating services)
 │
-├── main.go                  # business implement
+├── main.go                   # App entry point
 │
-├── .env                      # Environment variables
-├── Dockerfile                      # Dockerfile
-├── .gitignore
-├── go.mod                    # Go module file
-├── go.sum
-└── README.md
+├── .env                      # Environment variable definitions
+├── Dockerfile                # Docker config
+├── .gitignore                # Git ignored files
+├── go.mod                    # Go module definitions
+├── go.sum                    # Go dependency checksums
+└── README.md                 # This file
 
 
 ## 📦 Installation & Run (Local)
@@ -88,16 +89,15 @@ git clone https://github.com/iseT1enLoc/cakewai.git
 # Enter the project directory
 cd cakewai
 
+# (Optional) Set up environment variables
+cp .env.example .env
+# Then edit the .env file to include your MongoDB URI, JWT secrets, API keys, etc.
+
+# Install dependencies
+go mod tidy
+
 # Run the application
 go run main.go
 
-## 📬 Contact
-
-If you have questions, suggestions, or need support:
-
-Nguyễn Võ Tiến Lộc
-📧 Email: locnvt.it@gmail.com
-
-Let me know if you’d like a `Dockerfile`, `.env.example`, or API documentation template included as well.
 
 
