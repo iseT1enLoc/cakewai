@@ -47,6 +47,7 @@ Cakewai includes smart features to **boost sales and user engagement**:
 - [**Docker** - Containerization platform](https://www.docker.com/)
 ---
 
+
 ## 📁 Project Structure
 ```bash
 cakewai/
@@ -78,8 +79,9 @@ cakewai/
 ├── go.mod                    # Go module definitions
 ├── go.sum                    # Go dependency checksums
 └── README.md                 # This file
-
+```
 ---
+
 ## 📦 Installation & Run (Local)
 
 ```bash
