@@ -33,6 +33,7 @@ func (o *OrderHandler) CreatOrderHandler() gin.HandlerFunc {
 			})
 			return
 		}
+
 		var order_req domain.OrderReq
 		if err := ctx.ShouldBindJSON(&order_req); err != nil {
 			fmt.Print("User ID not found in context")
