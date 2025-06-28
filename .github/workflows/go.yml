@@ -51,6 +51,12 @@ jobs:
     #         -e TIMEOUT="${{ secrets.TIMEOUT }}" \
     #         -e FRONT_END="${{ secrets.FRONT_END }}" \
     #         iset1enloc/cakewaibackend:latest
+    - name: Validate SSH key format
+      run: |
+        echo "${{ secrets.DIGI_SSH }}" > test_key
+        chmod 600 test_key
+        ssh-keygen -l -f test_key || echo "❌ Invalid SSH private key"
+
     - name: Deploy to DigitalOcean Droplet
       uses: appleboy/ssh-action@v0.1.10
       with:
