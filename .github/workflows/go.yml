@@ -34,7 +34,7 @@ jobs:
 
     - name: Deploy via doctl SSH
       run: |
-        doctl compute ssh ${{ secrets.DROPLET_NAME }} \
+        doctl compute ssh cakewaitownubuntu \
           --ssh-command "docker pull iset1enloc/cakewaibackend:latest && \
           docker stop cakewai92 || true && \
           docker rm cakewai92 || true && \
