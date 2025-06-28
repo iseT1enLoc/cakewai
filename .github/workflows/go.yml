@@ -45,6 +45,11 @@ jobs:
           docker run -d \
             --name cakewai92 \
             -p 8080:8080 \
+            -e DB_PORT='${{ secrets.DB_PORT }}' \
+            -e DB_HOST='${{ secrets.DB_HOST }}' \
+            -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            -e DB_USER='${{ secrets.DB_USER }}' \
+            -e DB_NAME='${{ secrets.DB_NAME }}' \
             -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
             -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
             -e REFRESH_SECRET='${{ secrets.REFRESH_SECRET }}' \
