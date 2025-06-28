@@ -7,6 +7,7 @@ Built using a clean modular architecture with **Gin**, **MongoDB**, **Cloudinary
 ![CakeWai Town](media/homepage.png)
 ---
 
+
 ## 🚀 Features
 
 - ✅ RESTful API structure

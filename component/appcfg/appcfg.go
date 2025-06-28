@@ -2,6 +2,7 @@ package appconfig
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -9,13 +10,10 @@ import (
 )
 
 func LoadEnv() (*Env, error) {
-	err := godotenv.Load()
-
-	if err != nil {
-		fmt.Errorf("Could not load .env %v", err)
-		return nil, err
+	// Try to load .env only if it exists (for local development)
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables.")
 	}
-
 	acc_time := os.Getenv("ACCESS_TOK_EXP")
 	re_time := os.Getenv("REFRESH_TOK_EXP")
 	// Convert string to integer
