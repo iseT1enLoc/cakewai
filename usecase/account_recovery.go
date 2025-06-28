@@ -23,6 +23,13 @@ type accountRecovery struct {
 	timeout   time.Duration
 }
 
+func NewAccountRecovery(user_repo repository.UserRepository, timeout time.Duration) domain.AccountRecovery {
+	return &accountRecovery{
+		user_repo: user_repo,
+		timeout:   timeout,
+	}
+}
+
 // ChangesPassword implements domain.AccountRecovery.
 func (a *accountRecovery) ChangesPassword(ctx context.Context, env *appconfig.Env, userId primitive.ObjectID, currentPassword string, newPassword string) error {
 	err := a.user_repo.UpdateUserPassword(ctx, userId, currentPassword, newPassword)
@@ -84,11 +91,4 @@ func (a *accountRecovery) ResetPasswordRequest(ctx context.Context, env *appconf
 		return err
 	}
 	return nil
-}
-
-func NewAccountRecovery(user_repo repository.UserRepository, timeout time.Duration) domain.AccountRecovery {
-	return &accountRecovery{
-		user_repo: user_repo,
-		timeout:   timeout,
-	}
 }

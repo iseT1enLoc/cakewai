@@ -14,7 +14,7 @@ Built using a clean modular architecture with **Gin**, **MongoDB**, **Cloudinary
 - ✅ RESTful API structure
 - 🔐 JWT Authentication (Access token and RefreshToken)
 - 🗃️ MongoDB (via official Go driver)
-- 🖼️ Image generation using Hugging Face APIs
+- 🖼️ Image generation using Hugging Face APIs [CakewaiFastAPI](https://github.com/iseT1enLoc/cakewai_fast_api).
 - ☁️ Cloudinary for image uploading
 - 🧠 Fine-grain AI prompting with Gemini
 - 📁 Modular folder structure
