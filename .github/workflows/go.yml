@@ -22,91 +22,35 @@ jobs:
     - name: Push Docker image
       run: docker push iset1enloc/cakewaibackend:latest
 
-    # - name: Deploy to DigitalOcean Droplet
-    #   uses: appleboy/ssh-action@v0.1.10
-    #   with:
-    #     host: ${{ secrets.DO_HOST }}
-    #     username: ${{ secrets.DO_USER }}
-    #     key: ${{ secrets.DO_SSH_KEY }}
-    #     script: |
-    #       docker pull iset1enloc/cakewaibackend:latest
-    #       docker stop cakewai92 || true
-    #       docker rm cakewai92 || true
-    #       docker run -d \
+# ✅ Install doctl via official action
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITAL_OCEAN_TOKEN }}
+
+    # Optional: Verify access to your account
+    - name: List DigitalOcean droplets
+      run: doctl compute droplet list
+
+    # Log into DigitalOcean Container Registry (if needed)
+    - name: Login to DOCR
+      run: doctl registry login --expiry-seconds 300
+
+    # # Deploy on droplet via SSH
+    # - name: Deploy via doctl SSH
+    #   run: |
+    #     doctl compute ssh ${{ secrets.DROPLET_NAME }} --ssh-command "
+    #       echo ✅ Connected to droplet;
+    #       docker --version;
+    #       docker pull iset1enloc/cakewaibackend:latest;
+    #       docker stop cakewai92 || true;
+    #       docker rm cakewai92 || true;
+    #       docker run -d --restart always \
     #         --name cakewai92 \
     #         -p 8080:8080 \
-    #         -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-    #         -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-    #         -e REFRESH_SECRET="${{ secrets.REFRESH_SECRET }}" \
-    #         -e ACCESS_SECRET="${{ secrets.ACCESS_SECRET }}" \
-    #         -e ACCESS_TOK_EXP="${{ secrets.ACCESS_TOK_EXP }}" \
-    #         -e REFRESH_TOK_EXP="${{ secrets.REFRESH_TOK_EXP }}" \
-    #         -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-    #         -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRE }}" \
-    #         -e CLOUD_NAME="${{ secrets.CLOUD_NAME }}" \
-    #         -e CLOUD_API_KEY="${{ secrets.CLOUD_API_KEY }}" \
-    #         -e CLOUD_API_SECRET="${{ secrets.CLOUD_API_SECRET }}" \
-    #         -e EMAIL_API="${{ secrets.EMAIL_API }}" \
-    #         -e SENDER="${{ secrets.SENDER }}" \
-    #         -e TIMEOUT="${{ secrets.TIMEOUT }}" \
-    #         -e FRONT_END="${{ secrets.FRONT_END }}" \
-    #         iset1enloc/cakewaibackend:latest
-    - name: Validate SSH key format
-      run: |
-        echo "${{ secrets.DIGI_SSH }}" > test_key
-        chmod 600 test_key
-        ssh-keygen -l -f test_key || echo "❌ Invalid SSH private key"
-
-    - name: Deploy to DigitalOcean Droplet
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.DO_HOST }}
-        username: ${{ secrets.DO_USER }}
-        key: ${{ secrets.DIGI_SSH }}
-        script: |
-          echo "✅ Logged in as: $(whoami)"
-          echo "📍 Host IP: $(hostname -I)"
-          echo "🐳 Checking Docker version..."
-          docker --version || { echo "❌ Docker not installed!"; exit 1; }
-    
-          echo "🔍 Current running containers:"
-          docker ps -a || echo "No containers running."
-    
-          echo "⬇️ Pulling latest Docker image..."
-          docker pull iset1enloc/cakewaibackend:latest || { echo "❌ Failed to pull image"; exit 1; }
-    
-          echo "🛑 Stopping existing container if running..."
-          docker stop cakewai92 || echo "⚠️ No running container to stop"
-    
-          echo "🧹 Removing old container..."
-          docker rm cakewai92 || echo "⚠️ No old container to remove"
-    
-          echo "🚀 Starting new container..."
-          docker run -d \
-            --name cakewai92 \
-            -p 8080:8080 \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-            -e REFRESH_SECRET="${{ secrets.REFRESH_SECRET }}" \
-            -e ACCESS_SECRET="${{ secrets.ACCESS_SECRET }}" \
-            -e ACCESS_TOK_EXP="${{ secrets.ACCESS_TOK_EXP }}" \
-            -e REFRESH_TOK_EXP="${{ secrets.REFRESH_TOK_EXP }}" \
-            -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-            -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            -e CLOUD_NAME="${{ secrets.CLOUD_NAME }}" \
-            -e CLOUD_API_KEY="${{ secrets.CLOUD_API_KEY }}" \
-            -e CLOUD_API_SECRET="${{ secrets.CLOUD_API_SECRET }}" \
-            -e EMAIL_API="${{ secrets.EMAIL_API }}" \
-            -e SENDER="${{ secrets.SENDER }}" \
-            -e TIMEOUT="${{ secrets.TIMEOUT }}" \
-            -e FRONT_END="${{ secrets.FRONT_END }}" \
-            iset1enloc/cakewaibackend:latest || { echo "❌ Failed to start container"; exit 1; }
-    
-          echo "📦 Verifying container status..."
-          docker ps | grep cakewai92 || echo "❌ Container is not running"
-    
-          echo "📝 Last 20 lines of container logs:"
-          docker logs --tail 20 cakewai92 || echo "⚠️ Could not read container logs"
-    
-          echo "✅ Deployment finished."
-
+    #         -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+    #         -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
+    #         -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
+    #         iset1enloc/cakewaibackend:latest;
+    #       docker ps -a | grep cakewai92;
+    #       echo ✅ Deployment finished;
