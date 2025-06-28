@@ -34,7 +34,7 @@ jobs:
 
     - name: Deploy via doctl SSH
       run: |
-        doctl compute ssh --ssh-private-ip 10.104.0.2 "
+        doctl compute ssh --ssh-private-ip 10.104.0.2"
           docker pull iset1enloc/cakewaibackend:latest
           docker stop cakewai92 || true
           docker rm cakewai92 || true
