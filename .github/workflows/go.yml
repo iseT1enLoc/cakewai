@@ -56,7 +56,7 @@ jobs:
       with:
         host: ${{ secrets.DO_HOST }}
         username: ${{ secrets.DO_USER }}
-        key: ${{ secrets.DO_SSH_KEY }}
+        key: ${{ secrets.DIGI_SSH }}
         script: |
           echo "✅ Logged in as: $(whoami)"
           echo "📍 Host IP: $(hostname -I)"
