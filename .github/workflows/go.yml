@@ -21,7 +21,7 @@ jobs:
 
     # - name: Push Docker image
     #   run: docker push iset1enloc/cakewaibackend:latest
-
+  
     - name: Deploy to DigitalOcean Droplet
       uses: appleboy/ssh-action@v0.1.10
       with:
@@ -31,9 +31,17 @@ jobs:
         port: 22
         script: |
           echo "✅ Logged in as $(whoami)"
+          echo "📦 Pulling Docker image..."
+          set -x
           docker pull iset1enloc/cakewaibackend:latest
+    
+          echo "🛑 Stopping old container if running..."
           docker stop cakewai92 || true
+    
+          echo "🧹 Removing old container if exists..."
           docker rm cakewai92 || true
+    
+          echo "🚀 Running new container..."
           docker run -d \
             --name cakewai92 \
             -p 8080:8080 \
@@ -53,4 +61,6 @@ jobs:
             -e TIMEOUT='${{ secrets.TIMEOUT }}' \
             -e FRONT_END='${{ secrets.FRONT_END }}' \
             iset1enloc/cakewaibackend:latest
+    
+          echo "✅ Deployment complete!"
 
