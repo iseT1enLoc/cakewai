@@ -22,23 +22,18 @@ jobs:
     # - name: Push Docker image
     #   run: docker push iset1enloc/cakewaibackend:latest
 
-# ✅ Install doctl via official action
-    - name: Install doctl
-      uses: digitalocean/action-doctl@v2
+    - name: Deploy to DigitalOcean Droplet
+      uses: appleboy/ssh-action@v0.1.10
       with:
-        token: ${{ secrets.DIGITAL_OCEAN_TOKEN }}
-
-    # Optional: Verify access to your account
-    - name: List DigitalOcean droplets
-      run: doctl compute droplet list
-
-    - name: Deploy via doctl SSH
-      run: |
-        doctl compute ssh cakewaitownubuntu \
-          --ssh-key-path ~/.ssh/id_rsa \
-          --ssh-command "docker pull iset1enloc/cakewaibackend:latest && \
-          docker stop cakewai92 || true && \
-          docker rm cakewai92 || true && \
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DO_USER }}
+        key: ${{ secrets.DIGI_SSH }}
+        port: 22
+        script: |
+          echo "✅ Logged in as $(whoami)"
+          docker pull iset1enloc/cakewaibackend:latest
+          docker stop cakewai92 || true
+          docker rm cakewai92 || true
           docker run -d \
             --name cakewai92 \
             -p 8080:8080 \
@@ -57,5 +52,5 @@ jobs:
             -e SENDER='${{ secrets.SENDER }}' \
             -e TIMEOUT='${{ secrets.TIMEOUT }}' \
             -e FRONT_END='${{ secrets.FRONT_END }}' \
-            iset1enloc/cakewaibackend:latest"
+            iset1enloc/cakewaibackend:latest
 
